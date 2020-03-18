@@ -50,5 +50,7 @@ K_3 = zeros(P, M); % P x M
 Q_4 = zeros(1, P); % 1 x P
 Q_5 = zeros(1, M); % 1 x M
 
+K = K_1 - K_3 * (K_2^-1) * (K_3');
+
 end
 
