@@ -105,9 +105,9 @@ end
 
 % Building K_2
 K_2(1, 1) = 2 * besselh_prime(0, k*R) * besselh(0, k*R);
-for e = 1:m
-    K_2(2*m, 2*m) = besselh_prime(e, k*R) * besselh(e, k*R);
-    K_2(2*m + 1, 2*m + 1) = besselh_prime(e, k*R) * besselh(e, k*R);
+for j = 1:m
+    K_2(2*j, 2*j) = besselh_prime(j, k*R) * besselh(j, k*R);
+    K_2(2*j + 1, 2*j + 1) = besselh_prime(j, k*R) * besselh(j, k*R);
 end
 K_2 = K_2 * pi * k * R * h;
 
@@ -125,15 +125,15 @@ end
 % First row
 K_3(1, 1) = 2 * besselh_prime(0, k*R) * L(1);
 for j = 1:m
-    K_3(1, 2*m) = besselh_prime(j, cos(j * theta(P) + cos(j * theta(1)))) * L(1);
-    K_3(1, 2*m+1) = besselh_prime(j, sin(j * theta(P) + sin(j * theta(1)))) * L(1);
+    K_3(1, 2*j) = besselh_prime(j, cos(j * theta(P) + cos(j * theta(1)))) * L(1);
+    K_3(1, 2*j+1) = besselh_prime(j, sin(j * theta(P) + sin(j * theta(1)))) * L(1);
 end
 % Other rows
 for i = 2:P
     K_3(i, 1) = 2 * besselh_prime(0, k*R) * L(i);
     for j = 1:m
-        K_3(i, 2*m) = besselh_prime(j, cos(j * theta(i-1) + cos(j * theta(i)))) * L(i);
-        K_3(i, 2*m+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
+        K_3(i, 2*j) = besselh_prime(j, cos(j * theta(i-1) + cos(j * theta(i)))) * L(i);
+        K_3(i, 2*j+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
     end
 end
 K_3 = -k * h/2 * K_3;
@@ -148,6 +148,12 @@ end
 Q_4 = k * h/2 * Q_4;
 
 % Building Q_5
+Q_5(1) = J_0 * besselh_prime(0, k*R); %%% CHECK what is J?
+for j = 1:m
+    Q_5(2*j) = 1i^j * J_j * besselh_prime(j, k*R) * cos(j * theta_I);
+    Q_5(2*j + 1) = 1i^j * J_j * besselh_prime(j, k*R) * sin(j * theta_I);
+end
+Q_5 = 2 * pi * R * k * h * Q_5;
 
 K = K_1 - K_3 * (K_2^-1) * (K_3');
 B = Q_4 + K_3*K_2^-1 * Q_5;
