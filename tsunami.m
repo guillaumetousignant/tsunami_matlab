@@ -112,17 +112,21 @@ end
 K_2 = K_2 * pi * k * R * h;
 
 % Building K_3
+L = zeros(P, 1);
+theta = zeros(P, 1)
 for i = 1:P
-    L = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
+    L(i) = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
     sph_1 = to_sph([points(1, farfield(1, i)), points(2, farfield(1, i)), 0]);
     sph_2 = to_sph([points(1, farfield(2, i)), points(2, farfield(2, i)), 0]);
-    theta = [sph_1(3);
-             sph_2(3)];
+    theta(i, 1) = sph_1(3);
+    theta(i, 2) = sph_2(3);
+end
 
-    K_3(i, 1) = 2 * besselh_prime(0, k*R) * L;
+for i = 1:P
+    K_3(i, 1) = 2 * besselh_prime(0, k*R) * L(i);
     for j = 1:m
-        K_3(i, 2*m) = besselh_prime(j, cos(j * theta(1) + cos(j * theta(2)))) * L;
-        K_3(i, 2*m+1) = besselh_prime(j, sin(j * theta(1) + sin(j * theta(2)))) * L;
+        K_3(i, 2*m) = besselh_prime(j, cos(j * theta(i, 1) + cos(j * theta(i, 2)))) * L;
+        K_3(i, 2*m+1) = besselh_prime(j, sin(j * theta(i, 1) + sin(j * theta(i, 2)))) * L;
     end
 end
 K_3 = -k * h/2 * K_3;
