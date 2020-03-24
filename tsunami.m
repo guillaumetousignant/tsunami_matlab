@@ -113,27 +113,35 @@ K_2 = K_2 * pi * k * R * h;
 
 % Building K_3
 L = zeros(P, 1);
-theta = zeros(P, 1)
+theta = zeros(P, 1);
+q = zeros(P, 1);
 for i = 1:P
     L(i) = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
-    sph_1 = to_sph([points(1, farfield(1, i)), points(2, farfield(1, i)), 0]);
-    sph_2 = to_sph([points(1, farfield(2, i)), points(2, farfield(2, i)), 0]);
-    theta(i, 1) = sph_1(3);
-    theta(i, 2) = sph_2(3);
+    sph = to_sph([(points(1, farfield(1, i)) + points(1, farfield(2, i)))/2, (points(2, farfield(1, i)) + points(2, farfield(2, i)))/2, 0]);
+    theta(i) = sph(3);
+    q(i) = 1i * cos(theta(i) - theta(1)) * exp(1i * k * R * cos(theta(i) - theta_I));
 end
 
-for i = 1:P
+% First row
+K_3(1, 1) = 2 * besselh_prime(0, k*R) * L(1);
+for j = 1:m
+    K_3(1, 2*m) = besselh_prime(j, cos(j * theta(P) + cos(j * theta(1)))) * L(1);
+    K_3(1, 2*m+1) = besselh_prime(j, sin(j * theta(P) + sin(j * theta(1)))) * L(1);
+end
+% Other rows
+for i = 2:P
     K_3(i, 1) = 2 * besselh_prime(0, k*R) * L(i);
     for j = 1:m
-        K_3(i, 2*m) = besselh_prime(j, cos(j * theta(i, 1) + cos(j * theta(i, 2)))) * L;
-        K_3(i, 2*m+1) = besselh_prime(j, sin(j * theta(i, 1) + sin(j * theta(i, 2)))) * L;
+        K_3(i, 2*m) = besselh_prime(j, cos(j * theta(i-1) + cos(j * theta(i)))) * L(i);
+        K_3(i, 2*m+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
     end
 end
 K_3 = -k * h/2 * K_3;
 
 % Building Q_4
-for i = 1:P
-
+Q_4(1) = (q(P) - q(1)) * L(1);
+for i = 2:P
+    Q_4(i) = (q(i-1) - + q(i)) * L(i);
 end 
 Q_4 = k * h/2 * Q_4;
 
