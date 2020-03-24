@@ -175,6 +175,20 @@ end
 % K * eta = B
 eta = K\B_exp;
 
+figure();
+t = 0:0.1:100;
+
+for i = 1:length(t)
+    ksi = real(eta * exp(-1i * omega * t(i)));
+    trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
+    hold on
+    trimesh(elements', points(1, :)', points(2, :)', ksi);
+    hold off
+    title(sprintf('%gs', t(i)));
+    axis([-R, R, -R, R, -R, R]);
+    drawnow;
+end
+
 end
 
 function [result] = besselh_prime(nu, z)
