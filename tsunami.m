@@ -139,7 +139,9 @@ end
 K_3 = -k * h/2 * K_3;
 
 % Building Q_4
+% First row
 Q_4(1) = (q(P) - q(1)) * L(1);
+% Other rows
 for i = 2:P
     Q_4(i) = (q(i-1) - + q(i)) * L(i);
 end 
