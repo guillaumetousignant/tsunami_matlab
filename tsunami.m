@@ -111,6 +111,22 @@ for e = 1:m
 end
 K_2 = K_2 * pi * k * R * h;
 
+% Building K_3
+for i = 1:P
+    L = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
+    sph_1 = to_sph([points(1, farfield(1, i)), points(2, farfield(1, i))]);
+    sph_2 = to_sph([points(1, farfield(2, i)), points(2, farfield(2, i))]);
+    theta = [sph_1(3);
+             sph_2(3)];
+
+    K_3(i, 1) = 2 * besselh_prime(0, k*R) * L; %%% CHECK L(i)
+    for j = 1:m
+        K_3(i, 2*m) = besselh_prime(j, cos(j * theta(1) + cos(j * theta(2)))) * L;
+        K_3(i, 2*m+1) = besselh_prime(j, sin(j * theta(1) + sin(j * theta(2)))) * L;
+    end
+end
+K_3 = -k * h/2 * K_3;
+
 K = K_1 - K_3 * (K_2^-1) * (K_3');
 B = Q_4 + K_3*K_2^-1 * Q_5;
 
