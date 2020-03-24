@@ -55,8 +55,8 @@ K_1 = zeros(E, E); % E x E
 K_2 = zeros(M, M); % M x M
 K_3 = zeros(P, M); % P x M
 
-Q_4 = zeros(1, P); % 1 x P
-Q_5 = zeros(1, M); % 1 x M
+Q_4 = zeros(P, 1); % 1 x P      transposed (?)
+Q_5 = zeros(M, 1); % 1 x M      transposed (?)
 
 % Building K_1
 for e = 1:N_elements
