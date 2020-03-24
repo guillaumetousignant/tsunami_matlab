@@ -148,13 +148,14 @@ end
 Q_4 = k * h/2 * Q_4;
 
 % Building Q_5
-Q_5(1) = J_0 * besselh_prime(0, k*R); %%% CHECK what is J?
+Q_5(1) = besselj(0, k*R) * besselh_prime(0, k*R); % Assumes J_0 is J_0(kR)
 for j = 1:m
-    Q_5(2*j) = 1i^j * J_j * besselh_prime(j, k*R) * cos(j * theta_I);
-    Q_5(2*j + 1) = 1i^j * J_j * besselh_prime(j, k*R) * sin(j * theta_I);
+    Q_5(2*j) = 1i^j * besselj(j, k*R) * besselh_prime(j, k*R) * cos(j * theta_I);
+    Q_5(2*j + 1) = 1i^j * besselj(j, k*R) * besselh_prime(j, k*R) * sin(j * theta_I);
 end
 Q_5 = 2 * pi * R * k * h * Q_5;
 
+%% Full system
 K = K_1 - K_3 * (K_2^-1) * (K_3');
 B = Q_4 + K_3*K_2^-1 * Q_5;
 
