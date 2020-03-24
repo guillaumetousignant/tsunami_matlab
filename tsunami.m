@@ -156,10 +156,24 @@ end
 Q_5 = 2 * pi * R * k * h * Q_5;
 
 %% Full system
-K = K_1 - K_3 * (K_2^-1) * (K_3');
+LHS = K_3 * (K_2^-1) * (K_3');
+LHS_exp = zeros(size(points, 2), size(points, 2));
+for i = 1:P
+    for j = 1:P
+        LHS_exp(farfield(1, i), farfield(1, j)) = LHS(i, j);
+    end
+end
+
+K = K_1 - LHS_exp;
 B = Q_4 + K_3*K_2^-1 * Q_5;
 
+B_exp = zeros(size(points, 2), 1);
+for i = 1:P
+    B_exp(farfield(1, i)) = B(i);
+end
+
 % K * eta = B
+eta = K\B_exp;
 
 end
 
