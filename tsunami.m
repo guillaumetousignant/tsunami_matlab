@@ -38,10 +38,13 @@ figure()
 % Aspect ratio will always be wrong here, as there is no "axis equal" call for 3D plots.
 trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
 
-g = 9.81;                       % [m/s^2] Gravity
-c = 1481;                       % [m/s] Speed of sound (NOT SURE)
-lambda = c/omega;               % [m] Wavelength
-k = 2*pi/lambda;                % [1/m] Wave number 
+g = 9.81;                           % [m/s^2] Gravity
+c = 1481;                           % [m/s] Speed of sound (NOT SURE)
+lambda = c/omega;                   % [m] Wavelength
+k = 2*pi/lambda;                    % [1/m] Wave number 
+[R, I] = max(abs(points(1, :)));    % [m] Farfield radius
+h = points(3, I);
+
 m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
 M = 2*m + 1;
 P = size(farfield, 2);          % Number of nodes on the boundary
@@ -55,7 +58,9 @@ K_3 = zeros(P, M); % P x M
 Q_4 = zeros(1, P); % 1 x P
 Q_5 = zeros(1, M); % 1 x M
 
+% Building K_1
 for e = 1:N_elements
+    % Element variables
     K_elem = zeros(3, 3);
     x = [points(1, elements(1, e));
          points(1, elements(2, e));
@@ -72,16 +77,16 @@ for e = 1:N_elements
     c = [x(3) - x(2);
          x(1) - x(3);
          x(2) - x(1)];
-    h = [points(3, elements(1, e));
-         points(3, elements(2, e));
-         points(3, elements(3, e))];
+    h_e = points(3, elements(1, e)) + ...
+          points(3, elements(2, e)) + ...
+          points(3, elements(3, e));
 
     Delta_e = 0.5 * det([1, x(1), y(1); 1, x(2), y(2); 1, x(3), y(3)]); % Area of element e
 
     % Assembling element stiffness matrix
     for i = 1:3
         for j = 1:3
-            K_elem(i, j) = (sum(h))/(12 * Delta_e) * (b(i)*b(j) + c(i)*c(j));
+            K_elem(i, j) = h_e/(12 * Delta_e) * (b(i)*b(j) + c(i)*c(j));
             if i == j
                 K_elem(i, j) = K_elem(i, j) - omega^2/g * Delta_e/6;
             else
@@ -98,6 +103,14 @@ for e = 1:N_elements
     end
 end
 
+% Building K_2
+K_2(1, 1) = 2 * besselh_prime(0, k*R) * besselh(0, k*R);
+for e = 1:m
+    K_2(2*m, 2*m) = besselh_prime(e, k*R) * besselh(e, k*R);
+    K_2(2*m + 1, 2*m + 1) = besselh_prime(e, k*R) * besselh(e, k*R);
+end
+K_2 = K_2 * pi * k * R * h;
+
 K = K_1 - K_3 * (K_2^-1) * (K_3');
 B = Q_4 + K_3*K_2^-1 * Q_5;
 
@@ -105,3 +118,6 @@ B = Q_4 + K_3*K_2^-1 * Q_5;
 
 end
 
+function [result] = besselh_prime(nu, z)
+    result = nu * besselh(nu, z)/z - besselh(nu+1, z);
+end
