@@ -3,9 +3,9 @@ function [] = tsunami(varargin)
 %   Detailed explanation goes here
 
 filename = 'output.su2';
-wave_amplitude = 1;
-wave_k = 1;
-wave_theta = pi/8;
+amplitude = 1;
+omega = 1;
+theta_I = pi/8;
 
 if ~isempty(varargin)
     if rem(length(varargin), 2)
@@ -19,11 +19,11 @@ if ~isempty(varargin)
             case "-filename"
                 filename = value;
             case "-amplitude"
-                wave_amplitude = value;
-            case "-k"
-                wave_k = value;
+                amplitude = value;
+            case "-omega"
+                omega = value;
             case "-theta"
-                wave_theta = value;
+                theta_I = value;
             otherwise
                 warning('Warning, unknown parameter: ''%s'', ignoring.', key);
         end
@@ -38,10 +38,15 @@ figure()
 % Aspect ratio will always be wrong here, as there is no "axis equal" call for 3D plots.
 trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
 
-m = 8; % Order of truncation of 4.11.1 and 4.11.2 in textbook
+g = 9.81;                       % [m/s^2] Gravity
+c = 1481;                       % [m/s] Speed of sound (NOT SURE)
+lambda = c/omega;               % [m] Wavelength
+k = 2*pi/lambda;                % [1/m] Wave number 
+m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
 M = 2*m + 1;
-P = size(farfield, 2); % Number of nodes on the boundary
-E = size(points, 2); % Total number of nodes in and on the boundary
+P = size(farfield, 2);          % Number of nodes on the boundary
+E = size(points, 2);            % Total number of nodes in and on the boundary
+N_elements = size(elements, 2); % Number of elements
 
 K_1 = zeros(E, E); % E x E
 K_2 = zeros(M, M); % M x M
@@ -49,6 +54,15 @@ K_3 = zeros(P, M); % P x M
 
 Q_4 = zeros(1, P); % 1 x P
 Q_5 = zeros(1, M); % 1 x M
+
+for k = 1:N_elements
+    K_elem = zeros(3, 3);
+    for i = 1:3
+        for j = 1:3
+            K_elem(i, j) = 
+        end
+    end
+end
 
 K = K_1 - K_3 * (K_2^-1) * (K_3');
 
