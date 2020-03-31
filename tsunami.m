@@ -175,6 +175,8 @@ end
 % K * eta = B
 eta = K\B_exp;
 
+write_solution('data/output.dat', eta, amplitude, omega, points, elements, wall, farfield)
+
 figure();
 
 for t = 0:0.1:10000
