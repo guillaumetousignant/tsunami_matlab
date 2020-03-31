@@ -1,6 +1,7 @@
 function make_circle_su2(varargin)
-    % filename, nlevels, nsides, radius, ffradius, fact, hfarfield, hwall, hexp
-    % hexp under 1 makes the height steeper closer to the wall
+%MAKE_CIRCLE_SU2 Summary of this function goes here
+%   Parameters: filename, nlevels, nsides, radius, ffradius, fact, hfarfield, hwall, hexp
+%   hexp under 1 makes the height steeper closer to the wall
 
     filename = 'output.su2';
     nlevels = 8;
@@ -21,23 +22,23 @@ function make_circle_su2(varargin)
             value = varargin{i+1};
 
             switch lower(key)
-                case "-filename"
+                case "filename"
                     filename = value;
-                case "-nlevels"
+                case "nlevels"
                     nlevels = value;
-                case "-nsides"
+                case "nsides"
                     nsides = value;
-                case "-radius"
+                case "radius"
                     radius = value;
-                case "-ffradius"
+                case "ffradius"
                     ffradius = value;
-                case "-fact"
+                case "fact"
                     fact = value;
-                case "-hfarfield"
+                case "hfarfield"
                     hfarfield = value;
-                case "-hwall"
+                case "hwall"
                     hwall = value;
-                case "-hexp"
+                case "hexp"
                     hexp = value;
                 otherwise
                     warning('Warning, unknown parameter: ''%s'', ignoring.', key);

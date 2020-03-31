@@ -1,6 +1,6 @@
 function [] = tsunami(varargin)
 %TSUNAMI Summary of this function goes here
-%   Detailed explanation goes here
+%   Parameters: filename, amplitude, omega, theta
 
 filename = 'output.su2';
 amplitude = 1;
@@ -16,13 +16,13 @@ if ~isempty(varargin)
         value = varargin{i+1};
 
         switch lower(key)
-            case "-filename"
+            case "filename"
                 filename = value;
-            case "-amplitude"
+            case "amplitude"
                 amplitude = value;
-            case "-omega"
+            case "omega"
                 omega = value;
-            case "-theta"
+            case "theta"
                 theta_I = value;
             otherwise
                 warning('Warning, unknown parameter: ''%s'', ignoring.', key);
