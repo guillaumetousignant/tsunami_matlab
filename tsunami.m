@@ -176,16 +176,15 @@ end
 eta = K\B_exp;
 
 figure();
-t = 0:0.1:100;
 
-for i = 1:length(t)
-    ksi = real(eta * exp(-1i * omega * t(i)));
+for t = 0:0.1:10000
+    ksi = real(eta * exp(-1i * omega * t));
     trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
     hold on
     trimesh(elements', points(1, :)', points(2, :)', ksi);
     hold off
-    title(sprintf('%gs', t(i)));
-    %axis([-R, R, -R, R, -R, R]);
+    title(sprintf('%gs', t));
+    axis([-R, R, -R, R, -h, amplitude]);
     drawnow;
 end
 
