@@ -153,7 +153,7 @@ for j = 1:m
     Q_5(2*j) = 1i^j * besselj(j, k*R) * besselh_prime(j, k*R) * cos(j * theta_I);
     Q_5(2*j + 1) = 1i^j * besselj(j, k*R) * besselh_prime(j, k*R) * sin(j * theta_I);
 end
-Q_5 = 2 * pi * R * k * h * Q_5;
+Q_5 = amplitude * 2 * pi * R * k * h * Q_5; %%% CHECK amplitude not here in textbook, but seems like it should be based on 4.11.1 and Q_5 definition
 
 %% Full system
 LHS = K_3 * (K_2^-1) * (K_3');
@@ -185,7 +185,7 @@ for i = 1:length(t)
     trimesh(elements', points(1, :)', points(2, :)', ksi);
     hold off
     title(sprintf('%gs', t(i)));
-    axis([-R, R, -R, R, -R, R]);
+    %axis([-R, R, -R, R, -R, R]);
     drawnow;
 end
 
