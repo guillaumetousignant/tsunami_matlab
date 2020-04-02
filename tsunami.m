@@ -1,8 +1,9 @@
 function [] = tsunami(varargin)
 %TSUNAMI Summary of this function goes here
-%   Parameters: filename, amplitude, omega, theta
+%   Parameters: input, output, amplitude, omega, theta
 
-filename = 'output.su2';
+input_filename = 'meshes/output.su2';
+output_filename = 'data/output.dat';
 amplitude = 1;
 omega = 1;
 theta_I = pi/8;
@@ -16,8 +17,10 @@ if ~isempty(varargin)
         value = varargin{i+1};
 
         switch lower(key)
-            case "filename"
-                filename = value;
+            case "input"
+                input_filename = value;
+            case "output"
+                output_filename = value;
             case "amplitude"
                 amplitude = value;
             case "omega"
@@ -31,7 +34,7 @@ if ~isempty(varargin)
 end
 
 % File input
-[points, elements, wall, farfield] = read_su2(filename);
+[points, elements, wall, farfield] = read_su2(input_filename);
 
 % Plotting the mesh
 figure()
@@ -175,7 +178,7 @@ end
 % K * eta = B
 eta = K\B_exp;
 
-write_solution('data/output.dat', eta, amplitude, omega)
+write_solution(output_filename, eta, amplitude, omega)
 
 figure();
 
