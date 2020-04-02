@@ -1,6 +1,6 @@
 function [] = tsunami(varargin)
 %TSUNAMI Summary of this function goes here
-%   Parameters: input, output, amplitude, omega, theta
+%   Parameters: input, output, amplitude, omega, theta, video, timestep, maxt
 
 input_filename = 'meshes/output.su2';
 output_filename = 'data/output.dat';
@@ -8,6 +8,8 @@ amplitude = 1;
 omega = 1;
 theta_I = pi/8;
 write_video = false;
+time_step = 0.1;
+t_end = 100000;
 
 if ~isempty(varargin)
     if rem(length(varargin), 2)
@@ -30,6 +32,10 @@ if ~isempty(varargin)
                 theta_I = value;
             case "video"
                 write_video = value;
+            case "timestep"
+                time_step = value;
+            case "maxt"
+                t_end = value;
             otherwise
                 warning('Warning, unknown parameter: ''%s'', ignoring.', key);
         end
@@ -191,7 +197,7 @@ end
 
 figure();
 
-for t = 0:0.1:120
+for t = 0:time_step:t_end
     ksi = real(eta * exp(-1i * omega * t));
     trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
     hold on
