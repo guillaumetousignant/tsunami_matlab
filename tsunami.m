@@ -7,6 +7,7 @@ output_filename = 'data/output.dat';
 amplitude = 1;
 omega = 1;
 theta_I = pi/8;
+write_video = false;
 
 if ~isempty(varargin)
     if rem(length(varargin), 2)
@@ -27,6 +28,8 @@ if ~isempty(varargin)
                 omega = value;
             case "theta"
                 theta_I = value;
+            case "video"
+                write_video = value;
             otherwise
                 warning('Warning, unknown parameter: ''%s'', ignoring.', key);
         end
@@ -180,9 +183,15 @@ eta = K\B_exp;
 
 write_solution(output_filename, eta, amplitude, omega)
 
+if write_video
+    writerObj = VideoWriter(sprintf('../videos/output_omega%g.mp4', omega), 'MPEG-4');
+    writerObj.FrameRate = 60;
+    open(writerObj);
+end
+
 figure();
 
-for t = 0:0.1:10000
+for t = 0:0.1:120
     ksi = real(eta * exp(-1i * omega * t));
     trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
     hold on
@@ -191,8 +200,13 @@ for t = 0:0.1:10000
     title(sprintf('%gs', t));
     axis([-R, R, -R, R, -h, amplitude]);
     drawnow;
+    if write_video
+        writeVideo(writerObj, getframe(gcf));
+    end
 end
-
+if write_video
+    close(writerObj);
+end
 end
 
 function [result] = besselh_prime(nu, z)
