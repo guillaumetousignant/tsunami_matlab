@@ -64,6 +64,7 @@ h = points(3, I);
 
 % Printing parameters
 fprintf('Wave with following characteristics:\n');
+fprintf('    Amplitude = %g m', amplitude);
 fprintf('    Omega = %g rad/s', omega);
 fprintf('    Frequency = %g Hz', frequency);
 fprintf('    Period = %g s', period);
