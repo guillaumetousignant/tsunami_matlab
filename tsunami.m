@@ -79,7 +79,7 @@ for wave = 1:N_waves
     fprintf('    Period = %g s\n', period(wave));
     fprintf('    Wavelength = %g m\n', lambda(wave));
     fprintf('    Wave number = %g rad/m\n', k(wave));
-    fprintf('    Sound speed = %g m/s\n', c);
+    fprintf('    Sound speed = %g m/s\n', c_water);
 end
 
 M = 2*m + 1;
