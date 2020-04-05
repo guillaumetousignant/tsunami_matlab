@@ -10,7 +10,7 @@ m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in te
 theta_I = pi/8;
 write_video = false;
 time_step = 0.1;
-t_end = 100000;
+t_end = inf;
 
 if ~isempty(varargin)
     if rem(length(varargin), 2)
