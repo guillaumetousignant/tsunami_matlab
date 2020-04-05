@@ -5,7 +5,7 @@ function [] = tsunami(varargin)
 input_filename = 'meshes/output.su2';
 output_filename = 'data/output.dat';
 amplitude = 1;
-omega = 1;
+omega = 1;                      % [rad/s]
 m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
 theta_I = pi/8;
 write_video = false;
@@ -53,12 +53,23 @@ figure()
 % Aspect ratio will always be wrong here, as there is no "axis equal" call for 3D plots.
 trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
 
-g = 9.81;                           % [m/s^2] Gravity
-c = 1481;                           % [m/s] Speed of sound (NOT SURE)
-lambda = c/omega;                   % [m] Wavelength
-k = 2*pi/lambda;                    % [1/m] Wave number 
-[R, I] = max(abs(points(1, :)));    % [m] Farfield radius
+g = 9.81;                           % [m/s^2]   Gravity
+c = 1481;                           % [m/s]     Speed of sound (NOT SURE)
+frequency = omega/2*pi;             % [1/s]     Frequency of wave
+period = 1/frequency;               % [s]       Period of wave
+lambda = c * period;                % [m]       Wavelength of wave
+k = 2*pi/lambda;                    % [1/m]     Wave number 
+[R, I] = max(abs(points(1, :)));    % [m]       Farfield radius
 h = points(3, I);
+
+% Printing parameters
+fprintf('Wave with following characteristics:\n');
+fprintf('    Omega = %g rad/s', omega);
+fprintf('    Frequency = %g Hz', frequency);
+fprintf('    Period = %g s', period);
+fprintf('    Wavelength = %g m', lambda);
+fprintf('    Wave number = %g rad/m', k);
+fprintf('    Sound speed = %g m/s', c);
 
 M = 2*m + 1;
 P = size(farfield, 2);          % Number of nodes on the boundary
