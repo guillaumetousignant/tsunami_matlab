@@ -230,7 +230,7 @@ figure();
 t = 0;
 while t <= t_end
     t = t + time_step;
-    ksi = zeros(E, 0);
+    ksi = zeros(E, 1);
     for wave = 1:N_waves
         ksi = ksi + real(eta(:, wave) * exp(-1i * omega(wave) * t));
     end
