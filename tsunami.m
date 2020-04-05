@@ -1,9 +1,10 @@
 function [] = tsunami(varargin)
 %TSUNAMI Summary of this function goes here
-%   Parameters: input, output, amplitude, omega, theta, video, timestep, maxt
+%   Parameters: input, output, amplitude, omega, theta, video, videooutput, timestep, maxt, m
 
 input_filename = 'meshes/output.su2';
 output_filename = 'data/output.dat';
+video_output_filename = 'videos/output.mp4';
 amplitude = 1;
 omega = 1;                      % [rad/s]
 m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
@@ -33,6 +34,8 @@ if ~isempty(varargin)
                 theta_I = value;
             case "video"
                 write_video = value;
+            case "videooutput"
+                video_output_filename = value;
             case "timestep"
                 time_step = value;
             case "maxt"
@@ -68,148 +71,156 @@ h = points(3, I);                   % [m]       Farfield depth
 N_waves = length(omega);            %           Number of waves input
 
 % Printing parameters
-fprintf('Wave with following characteristics:\n');
-fprintf('    Amplitude = %g m\n', amplitude);
-fprintf('    Omega = %g rad/s\n', omega);
-fprintf('    Frequency = %g Hz\n', frequency);
-fprintf('    Period = %g s\n', period);
-fprintf('    Wavelength = %g m\n', lambda);
-fprintf('    Wave number = %g rad/m\n', k);
-fprintf('    Sound speed = %g m/s\n', c);
+for wave = 1:N_waves
+    fprintf('Wave with following characteristics:\n');
+    fprintf('    Amplitude = %g m\n', amplitude(wave));
+    fprintf('    Omega = %g rad/s\n', omega(wave));
+    fprintf('    Frequency = %g Hz\n', frequency(wave));
+    fprintf('    Period = %g s\n', period(wave));
+    fprintf('    Wavelength = %g m\n', lambda(wave));
+    fprintf('    Wave number = %g rad/m\n', k(wave));
+    fprintf('    Sound speed = %g m/s\n', c);
+end
 
 M = 2*m + 1;
 P = size(farfield, 2);          % Number of nodes on the boundary
 E = size(points, 2);            % Total number of nodes in and on the boundary
 N_elements = size(elements, 2); % Number of elements
 
-K_1 = zeros(E, E); % E x E
-K_2 = zeros(M, M); % M x M
-K_3 = zeros(P, M); % P x M
+eta = zeros(E, N_waves);        % Displacement
 
-Q_4 = zeros(P, 1); % 1 x P      transposed (?)
-Q_5 = zeros(M, 1); % 1 x M      transposed (?)
+[data_path, data_filename, data_ext] = fileparts(output_filename);
 
-% Building K_1
-for e = 1:N_elements
-    % Element variables
-    K_elem = zeros(3, 3);
-    x = [points(1, elements(1, e));
-         points(1, elements(2, e));
-         points(1, elements(3, e))];
-    y = [points(2, elements(1, e));
-         points(2, elements(2, e));
-         points(2, elements(3, e))];
-    %a = [x(2)*y(3) - x(3)*y(2); 
-    %     x(3)*y(1) - x(1)*y(3);
-    %     x(1)*y(2) - x(2)*y(1)];
-    b = [y(2) - y(3);
-         y(3) - y(1);
-         y(1) - y(2)];
-    c = [x(3) - x(2);
-         x(1) - x(3);
-         x(2) - x(1)];
-    h_e = points(3, elements(1, e)) + ...
-          points(3, elements(2, e)) + ...
-          points(3, elements(3, e));
+for wave = 1:N_waves
+    K_1 = zeros(E, E); % E x E
+    K_2 = zeros(M, M); % M x M
+    K_3 = zeros(P, M); % P x M
 
-    Delta_e = 0.5 * det([1, x(1), y(1); 1, x(2), y(2); 1, x(3), y(3)]); % Area of element e
+    Q_4 = zeros(P, 1); % 1 x P      transposed (?)
+    Q_5 = zeros(M, 1); % 1 x M      transposed (?)
 
-    % Assembling element stiffness matrix
-    for i = 1:3
-        for j = 1:3
-            K_elem(i, j) = h_e/(12 * Delta_e) * (b(i)*b(j) + c(i)*c(j));
-            if i == j
-                K_elem(i, j) = K_elem(i, j) - omega^2/g * Delta_e/6;
-            else
-                K_elem(i, j) = K_elem(i, j) - omega^2/g * Delta_e/2;
+    % Building K_1
+    for e = 1:N_elements
+        % Element variables
+        K_elem = zeros(3, 3);
+        x = [points(1, elements(1, e));
+            points(1, elements(2, e));
+            points(1, elements(3, e))];
+        y = [points(2, elements(1, e));
+            points(2, elements(2, e));
+            points(2, elements(3, e))];
+        %a = [x(2)*y(3) - x(3)*y(2); 
+        %     x(3)*y(1) - x(1)*y(3);
+        %     x(1)*y(2) - x(2)*y(1)];
+        b = [y(2) - y(3);
+            y(3) - y(1);
+            y(1) - y(2)];
+        c = [x(3) - x(2);
+            x(1) - x(3);
+            x(2) - x(1)];
+        h_e = points(3, elements(1, e)) + ...
+            points(3, elements(2, e)) + ...
+            points(3, elements(3, e));
+
+        Delta_e = 0.5 * det([1, x(1), y(1); 1, x(2), y(2); 1, x(3), y(3)]); % Area of element e
+
+        % Assembling element stiffness matrix
+        for i = 1:3
+            for j = 1:3
+                K_elem(i, j) = h_e/(12 * Delta_e) * (b(i)*b(j) + c(i)*c(j));
+                if i == j
+                    K_elem(i, j) = K_elem(i, j) - omega(wave)^2/g * Delta_e/6;
+                else
+                    K_elem(i, j) = K_elem(i, j) - omega(wave)^2/g * Delta_e/2;
+                end
+            end
+        end
+
+        % Assembling global stiffness matrix
+        for i = 1:3
+            for j = 1:3
+                K_1(elements(i, e), elements(j, e)) = K_1(elements(i, e), elements(j, e)) + K_elem(i, j);
             end
         end
     end
 
-    % Assembling global stiffness matrix
-    for i = 1:3
-        for j = 1:3
-            K_1(elements(i, e), elements(j, e)) = K_1(elements(i, e), elements(j, e)) + K_elem(i, j);
+    % Building K_2
+    K_2(1, 1) = 2 * besselh_prime(0, k(wave)*R) * besselh(0, k(wave)*R);
+    for j = 1:m
+        K_2(2*j, 2*j) = besselh_prime(j, k(wave)*R) * besselh(j, k(wave)*R);
+        K_2(2*j + 1, 2*j + 1) = besselh_prime(j, k(wave)*R) * besselh(j, k(wave)*R);
+    end
+    K_2 = K_2 * pi * k(wave) * R * h;
+
+    % Building K_3
+    L = zeros(P, 1);
+    theta = zeros(P, 1);
+    q = zeros(P, 1);
+    for i = 1:P
+        L(i) = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
+        sph = to_sph([(points(1, farfield(1, i)) + points(1, farfield(2, i)))/2, (points(2, farfield(1, i)) + points(2, farfield(2, i)))/2, 0]);
+        theta(i) = sph(3);
+        q(i) = 1i * cos(theta(i) - theta(1)) * exp(1i * k(wave) * R * cos(theta(i) - theta_I));
+    end
+
+    % First row
+    K_3(1, 1) = 2 * besselh_prime(0, k(wave)*R) * L(1);
+    for j = 1:m
+        K_3(1, 2*j) = besselh_prime(j, cos(j * theta(P) + cos(j * theta(1)))) * L(1);
+        K_3(1, 2*j+1) = besselh_prime(j, sin(j * theta(P) + sin(j * theta(1)))) * L(1);
+    end
+    % Other rows
+    for i = 2:P
+        K_3(i, 1) = 2 * besselh_prime(0, k(wave)*R) * L(i);
+        for j = 1:m
+            K_3(i, 2*j) = besselh_prime(j, cos(j * theta(i-1) + cos(j * theta(i)))) * L(i);
+            K_3(i, 2*j+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
         end
     end
-end
+    K_3 = -k(wave) * h/2 * K_3;
 
-% Building K_2
-K_2(1, 1) = 2 * besselh_prime(0, k*R) * besselh(0, k*R);
-for j = 1:m
-    K_2(2*j, 2*j) = besselh_prime(j, k*R) * besselh(j, k*R);
-    K_2(2*j + 1, 2*j + 1) = besselh_prime(j, k*R) * besselh(j, k*R);
-end
-K_2 = K_2 * pi * k * R * h;
+    % Building Q_4
+    % First row
+    Q_4(1) = (q(P) - q(1)) * L(1);
+    % Other rows
+    for i = 2:P
+        Q_4(i) = (q(i-1) - + q(i)) * L(i);
+    end 
+    Q_4 = k(wave) * h/2 * Q_4;
 
-% Building K_3
-L = zeros(P, 1);
-theta = zeros(P, 1);
-q = zeros(P, 1);
-for i = 1:P
-    L(i) = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
-    sph = to_sph([(points(1, farfield(1, i)) + points(1, farfield(2, i)))/2, (points(2, farfield(1, i)) + points(2, farfield(2, i)))/2, 0]);
-    theta(i) = sph(3);
-    q(i) = 1i * cos(theta(i) - theta(1)) * exp(1i * k * R * cos(theta(i) - theta_I));
-end
-
-% First row
-K_3(1, 1) = 2 * besselh_prime(0, k*R) * L(1);
-for j = 1:m
-    K_3(1, 2*j) = besselh_prime(j, cos(j * theta(P) + cos(j * theta(1)))) * L(1);
-    K_3(1, 2*j+1) = besselh_prime(j, sin(j * theta(P) + sin(j * theta(1)))) * L(1);
-end
-% Other rows
-for i = 2:P
-    K_3(i, 1) = 2 * besselh_prime(0, k*R) * L(i);
+    % Building Q_5
+    Q_5(1) = besselj(0, k(wave)*R) * besselh_prime(0, k(wave)*R); % Assumes J_0 is J_0(kR)
     for j = 1:m
-        K_3(i, 2*j) = besselh_prime(j, cos(j * theta(i-1) + cos(j * theta(i)))) * L(i);
-        K_3(i, 2*j+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
+        Q_5(2*j) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * cos(j * theta_I);
+        Q_5(2*j + 1) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * sin(j * theta_I);
     end
-end
-K_3 = -k * h/2 * K_3;
+    Q_5 = amplitude(wave) * 2 * pi * R * k(wave) * h * Q_5; %%% CHECK amplitude not here in textbook, but seems like it should be based on 4.11.1 and Q_5 definition
 
-% Building Q_4
-% First row
-Q_4(1) = (q(P) - q(1)) * L(1);
-% Other rows
-for i = 2:P
-    Q_4(i) = (q(i-1) - + q(i)) * L(i);
-end 
-Q_4 = k * h/2 * Q_4;
-
-% Building Q_5
-Q_5(1) = besselj(0, k*R) * besselh_prime(0, k*R); % Assumes J_0 is J_0(kR)
-for j = 1:m
-    Q_5(2*j) = 1i^j * besselj(j, k*R) * besselh_prime(j, k*R) * cos(j * theta_I);
-    Q_5(2*j + 1) = 1i^j * besselj(j, k*R) * besselh_prime(j, k*R) * sin(j * theta_I);
-end
-Q_5 = amplitude * 2 * pi * R * k * h * Q_5; %%% CHECK amplitude not here in textbook, but seems like it should be based on 4.11.1 and Q_5 definition
-
-%% Full system
-LHS = K_3 * (K_2^-1) * (K_3');
-LHS_exp = zeros(size(points, 2), size(points, 2));
-for i = 1:P
-    for j = 1:P
-        LHS_exp(farfield(1, i), farfield(1, j)) = LHS(i, j);
+    %% Full system
+    LHS = K_3 * (K_2^-1) * (K_3');
+    LHS_exp = zeros(size(points, 2), size(points, 2));
+    for i = 1:P
+        for j = 1:P
+            LHS_exp(farfield(1, i), farfield(1, j)) = LHS(i, j);
+        end
     end
+
+    K = K_1 - LHS_exp;
+    B = Q_4 + K_3*K_2^-1 * Q_5;
+
+    B_exp = zeros(size(points, 2), 1);
+    for i = 1:P
+        B_exp(farfield(1, i)) = B(i);
+    end
+
+    % K * eta = B
+    eta(:, wave) = K\B_exp;
+
+    write_solution([data_path filesep data_filename sprintf('_omega%g', omega(wave)) data_ext], eta(:, wave), amplitude(wave), omega(wave));
 end
-
-K = K_1 - LHS_exp;
-B = Q_4 + K_3*K_2^-1 * Q_5;
-
-B_exp = zeros(size(points, 2), 1);
-for i = 1:P
-    B_exp(farfield(1, i)) = B(i);
-end
-
-% K * eta = B
-eta = K\B_exp;
-
-write_solution(output_filename, eta, amplitude, omega)
 
 if write_video
-    writerObj = VideoWriter(sprintf('../videos/output_omega%g.mp4', omega), 'MPEG-4');
+    writerObj = VideoWriter(video_output_filename, 'MPEG-4');
     writerObj.FrameRate = 60;
     open(writerObj);
 end
@@ -219,13 +230,16 @@ figure();
 t = 0;
 while t <= t_end
     t = t + time_step;
-    ksi = real(eta * exp(-1i * omega * t));
+    ksi = zeros(E, 0);
+    for wave = 1:N_waves
+        ksi = ksi + real(eta(:, wave) * exp(-1i * omega(wave) * t));
+    end
     trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
     hold on
     trimesh(elements', points(1, :)', points(2, :)', ksi);
     hold off
     title(sprintf('%gs', t));
-    axis([-R, R, -R, R, -h, amplitude]);
+    axis([-R, R, -R, R, -h, max(amplitude)]);
     drawnow;
     if write_video
         writeVideo(writerObj, getframe(gcf));
