@@ -45,6 +45,10 @@ if ~isempty(varargin)
     end
 end
 
+if length(omega) ~= length(amplitude)
+    error('tsunami:numberOfWavesNotEqual', 'Error, the number of amplitudes and omega input is not the same. Exiting.');
+end
+
 % File input
 [points, elements, wall, farfield] = read_su2(input_filename);
 
