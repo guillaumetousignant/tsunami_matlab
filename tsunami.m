@@ -61,10 +61,10 @@ figure()
 trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
 
 g = 9.81;                           % [m/s^2]   Gravity
-c = 1481;                           % [m/s]     Speed of sound
+c_water = 1481;                     % [m/s]     Speed of sound
 frequency = omega./2*pi;            % [1/s]     Frequency of wave
 period = 1./frequency;              % [s]       Period of wave
-lambda = c .* period;               % [m]       Wavelength of wave
+lambda = c_water .* period;         % [m]       Wavelength of wave
 k = 2*pi./lambda;                   % [1/m]     Wave number 
 [R, I] = max(abs(points(1, :)));    % [m]       Farfield radius
 h = points(3, I);                   % [m]       Farfield depth
