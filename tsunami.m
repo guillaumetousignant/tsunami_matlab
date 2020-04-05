@@ -6,6 +6,7 @@ input_filename = 'meshes/output.su2';
 output_filename = 'data/output.dat';
 amplitude = 1;
 omega = 1;
+m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
 theta_I = pi/8;
 write_video = false;
 time_step = 0.1;
@@ -36,6 +37,8 @@ if ~isempty(varargin)
                 time_step = value;
             case "maxt"
                 t_end = value;
+            case "m"
+                m = value;
             otherwise
                 warning('Warning, unknown parameter: ''%s'', ignoring.', key);
         end
@@ -57,7 +60,6 @@ k = 2*pi/lambda;                    % [1/m] Wave number
 [R, I] = max(abs(points(1, :)));    % [m] Farfield radius
 h = points(3, I);
 
-m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
 M = 2*m + 1;
 P = size(farfield, 2);          % Number of nodes on the boundary
 E = size(points, 2);            % Total number of nodes in and on the boundary
