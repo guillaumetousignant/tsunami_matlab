@@ -211,7 +211,9 @@ end
 
 figure();
 
-for t = 0:time_step:t_end
+t = 0;
+while t <= t_end
+    t = t + time_step;
     ksi = real(eta * exp(-1i * omega * t));
     trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
     hold on
