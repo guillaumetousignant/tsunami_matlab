@@ -64,13 +64,13 @@ h = points(3, I);
 
 % Printing parameters
 fprintf('Wave with following characteristics:\n');
-fprintf('    Amplitude = %g m', amplitude);
-fprintf('    Omega = %g rad/s', omega);
-fprintf('    Frequency = %g Hz', frequency);
-fprintf('    Period = %g s', period);
-fprintf('    Wavelength = %g m', lambda);
-fprintf('    Wave number = %g rad/m', k);
-fprintf('    Sound speed = %g m/s', c);
+fprintf('    Amplitude = %g m\n', amplitude);
+fprintf('    Omega = %g rad/s\n', omega);
+fprintf('    Frequency = %g Hz\n', frequency);
+fprintf('    Period = %g s\n', period);
+fprintf('    Wavelength = %g m\n', lambda);
+fprintf('    Wave number = %g rad/m\n', k);
+fprintf('    Sound speed = %g m/s\n', c);
 
 M = 2*m + 1;
 P = size(farfield, 2);          % Number of nodes on the boundary
