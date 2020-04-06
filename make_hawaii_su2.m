@@ -13,6 +13,7 @@ N_domain_theta = N_points_ff;
 domain_r_exponent = 0.75;
 saturation_cutoff = 0.1;
 r_start = 0.01;
+ratio_high = 5;
 
 img = imread(filename_in);
 
@@ -237,6 +238,24 @@ end
 
 triangles = triangles(good_triangles, :);
 N_triangles = size(triangles, 1);
+
+%% Limiters
+for i = 1:N_triangles
+    ratio1 = abs(points(triangles(i, 1), 3)/points(triangles(i, 2), 3));
+    ratio2 = abs(points(triangles(i, 1), 3)/points(triangles(i, 3), 3));
+    ratio3 = abs(points(triangles(i, 2), 3)/points(triangles(i, 3), 3));
+    ratio4 = abs(points(triangles(i, 2), 3)/points(triangles(i, 1), 3));
+    ratio5 = abs(points(triangles(i, 3), 3)/points(triangles(i, 1), 3));
+    ratio6 = abs(points(triangles(i, 3), 3)/points(triangles(i, 2), 3));
+
+    if (ratio1 > ratio_high) && (ratio2 > ratio_high)
+        points(triangles(i, 1), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
+    elseif (ratio3 > ratio_high) && (ratio4 > ratio_high)
+        points(triangles(i, 2), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
+    elseif (ratio5 > ratio_high) && (ratio6 > ratio_high)
+        points(triangles(i, 3), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
+    end
+end
 
 %% Plotting
 figure()
