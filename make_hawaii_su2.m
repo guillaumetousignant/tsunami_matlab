@@ -204,12 +204,15 @@ N_points_domain = size(points_domain, 1);
 plot([x_domain_pix; x_domain_pix(1)], [y_domain_pix; y_domain_pix(1)], 'x', 'Linewidth', 2, 'Color', 'g');
 
 %% All points together now
-points_wall = zeros(sum(N_points_walls), 3);
+N_points_wall = sum(N_points_walls);
+points_wall = zeros(N_points_wall, 3);
+elements_wall = zeros(N_points_wall, 2);
 points_wall_ext = zeros(sum(N_points_walls_ext), 3);
 offset_ext = 0;
 for i = 1:N_islands
     offset = wall_offset(i) - wall_offset(1);
     points_wall(offset + 1:offset + N_points_walls(i), :) = points_walls{i, 1};
+    elements_wall(offset + 1:offset + N_points_walls(i), :) = elements_walls{i, 1};
     points_wall_ext(1 + offset_ext:N_points_walls_ext(i) + offset_ext, :) = points_walls_ext{i, 1};
     offset_ext= offset_ext + N_points_walls_ext(i);
 end
@@ -228,7 +231,6 @@ N_triangles = size(triangles, 1);
 
 %% Deleting 'land' elements
 good_triangles = true(N_triangles, 1);
-N_points_wall = sum(N_points_walls);
 wall_start = N_points_ff + 1;
 wall_end = N_points_ff + N_points_wall;
 
@@ -250,16 +252,42 @@ for i = 1:N_triangles
 
     if (ratio1 > ratio_high) && (ratio2 > ratio_high)
         points(triangles(i, 1), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
-        disp('Noot');
     elseif (ratio3 > ratio_high) && (ratio4 > ratio_high)
         points(triangles(i, 2), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
-        disp('Noot');
     elseif (ratio5 > ratio_high) && (ratio6 > ratio_high)
         points(triangles(i, 3), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
-        disp('Noot');
     end
 end
 
 %% Plotting
 figure()
 trisurf(triangles, points(:, 1), points(:, 2), -points(:, 3));
+
+%% Writing file
+su2_file = fopen(filename_out, 'w');
+    
+fprintf(su2_file, 'NDIME= 3\n\n');
+fprintf(su2_file, 'NPOIN= %g\n', N_points);
+for k = 1:N_points
+    fprintf(su2_file, '%g %g %g\n', points(k, 1), points(k, 2), points(k, 3));
+end
+
+fprintf(su2_file, '\nNELEM= %g\n', N_triangles);
+for k = 1:N_triangles
+    fprintf(su2_file, '5 %g %g %g\n', triangles(k, 1), triangles(k, 2), triangles(k, 3));
+end
+
+fprintf(su2_file, 'NMARK= 2\n');
+fprintf(su2_file, 'MARKER_TAG= wall\n');
+fprintf(su2_file, 'MARKER_ELEMS= %g\n', N_points_wall);
+for k = 1:N_points_wall
+    fprintf(su2_file, '3 %g %g\n', elements_wall(k, 1), elements_wall(k, 2));
+end
+
+fprintf(su2_file, 'MARKER_TAG= farfield\n');
+fprintf(su2_file, 'MARKER_ELEMS= %g\n', N_points_ff);
+for k = 1:N_points_ff
+    fprintf(su2_file, '3 %g %g\n',elements_ff(k, 1), elements_ff(k, 2));
+end
+
+fclose(su2_file);
