@@ -145,11 +145,11 @@ points_walls_ext = cell(N_islands, 1);
 
 for i = 1:N_islands
     N_points_walls_ext(i, 1) = N_points_walls(i) * 2;
-    points_walls_ext{i, 1} = zeros(N_points_walls_ext(i, 1));
+    points_walls_ext{i, 1} = zeros(N_points_walls_ext(i, 1), 3);
 
     for j = 1:N_points_walls(i)
-        point1 = points_walls{i, 1}(elements_walls{i, 1}(j, 1), :);
-        point2 = points_walls{i, 1}(elements_walls{i, 1}(j, 2), :);
+        point1 = points_walls{i, 1}(elements_walls{i, 1}(j, 1) - wall_offset(i), :);
+        point2 = points_walls{i, 1}(elements_walls{i, 1}(j, 2) - wall_offset(i), :);
 
         x = (point1(1) + point2(1))/2;
         x = x + (x - center_walls(i, 1)) * wall_ext_factor;
