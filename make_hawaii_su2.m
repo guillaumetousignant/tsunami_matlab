@@ -4,7 +4,7 @@ clc;
 
 filename_in = 'data/hawaii2.png';
 filename_out = 'meshes/hawaii.su2';
-N_points_farfield = 128;
+N_points_ff = 128;
 depth_wall = 32;
 
 img = imread(filename_in);
@@ -65,7 +65,7 @@ end
 %disp(depth);
 
 %% Farfield
-ang = linspace(0, 2 * pi, N_points_farfield); 
+ang = linspace(0, 2 * pi, N_points_ff); 
 x_boundary = radius_m * cos(ang);
 y_boundary = radius_m * sin(ang);
 
@@ -73,20 +73,20 @@ y_boundary = radius_m * sin(ang);
 
 plot(x_boundary_pix, y_boundary_pix, 'Linewidth', 2, 'Color', 'r');
 
-depths_ff = zeros(N_points_farfield, 1);
-for i = 1:N_points_farfield
+depths_ff = zeros(N_points_ff, 1);
+for i = 1:N_points_ff
     depths_ff(i) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_boundary_pix(i)), ceil(x_boundary_pix(i)), 1));
 end
 
 depths_ff = depths_ff(~isnan(depths_ff)); % Is we fall on black hue will be NaN.
 depth_ff = mean(depths_ff);
 
-points_ff = [x_boundary', y_boundary', ones(N_points_farfield, 1) * depth_ff];
+points_ff = [x_boundary', y_boundary', ones(N_points_ff, 1) * depth_ff];
 
-elements_ff = zeros(N_points_farfield, 2);
-elements_ff(:, 1) = 1:N_points_farfield;
+elements_ff = zeros(N_points_ff, 2);
+elements_ff(:, 1) = 1:N_points_ff;
 elements_ff(end, 2) = 1;
-elements_ff(1:end-1, 2) = 2:N_points_farfield;
+elements_ff(1:end-1, 2) = 2:N_points_ff;
 
 %% Walls
 N_islands = input('Input number of islands:\n');
@@ -94,7 +94,7 @@ N_islands = input('Input number of islands:\n');
 points_walls = cell(N_islands, 1);
 elements_walls = cell(N_islands, 1);
 wall_offset = zeros(N_islands+1, 1);
-wall_offset(1) = N_points_farfield;
+wall_offset(1) = N_points_ff;
 N_points_walls = zeros(N_islands, 1);
 for i = 1:N_islands
     fprintf('Click on points around island #%d. Press enter when done.\n', i);
@@ -111,3 +111,6 @@ for i = 1:N_islands
 
     wall_offset(i + 1) = wall_offset(i) + N_points_walls(i);
 end
+
+%% Points
+N_points_ff_extrude = N_points_ff
