@@ -7,6 +7,7 @@ filename_out = 'meshes/hawaii.su2';
 N_points_ff = 128;
 depth_wall = 32;
 ff_ext_factor = 0.975; % Farfield extrude factor
+wall_ext_factor = 1.1;
 
 img = imread(filename_in);
 
@@ -76,7 +77,7 @@ plot([x_boundary_pix, x_boundary_pix(1)], [y_boundary_pix, y_boundary_pix(1)], '
 
 depths_ff = zeros(N_points_ff, 1);
 for i = 1:N_points_ff
-    depths_ff(i) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_boundary_pix(i)), ceil(x_boundary_pix(i)), 1));
+    depths_ff(i) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_boundary_pix(i)), ceil(x_boundary_pix(i)), 1)); %%% CHECK can nan
 end
 
 depths_ff = depths_ff(~isnan(depths_ff)); % Is we fall on black hue will be NaN.
@@ -129,8 +130,8 @@ for i = 1:N_points_ff_ext
     x = ff_ext_factor * (point1(1) + point2(1))/2;
     y = ff_ext_factor * (point1(2) + point2(2))/2;
     [x_pix, y_pix] = m_to_pixels(x, y);
-    z = (depth_ff + interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)))/2;
-    points_ff_ext(i, :) = [x , y, z];
+    z = (depth_ff + interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)))/2; %%% CHECK can nan
+    points_ff_ext(i, :) = [x, y, z];
 end
 
 [x_ff_ext_pix, y_ff_ext_pix] = m_to_pixels(points_ff_ext(:, 1), points_ff_ext(:, 2));
@@ -139,3 +140,32 @@ plot([x_ff_ext_pix; x_ff_ext_pix(1)], [y_ff_ext_pix; y_ff_ext_pix(1)], 'o', 'Lin
 radius_m_ext = ff_ext_factor * radius_m;
 
 %% Islands extrude
+N_points_walls_ext = zeros(N_islands, 1);
+points_walls_ext = cell(N_islands, 1);
+
+for i = 1:N_islands
+    N_points_walls_ext(i, 1) = N_points_walls(i) * 2;
+    points_walls_ext{i, 1} = zeros(N_points_walls_ext(i, 1));
+
+    for j = 1:N_points_walls(i)
+        point1 = points_walls{i, 1}(elements_walls{i, 1}(j, 1), :);
+        point2 = points_walls{i, 1}(elements_walls{i, 1}(j, 2), :);
+
+        x = (point1(1) + point2(1))/2;
+        x = x + (x - center_walls(i, 1)) * wall_ext_factor;
+        y = (point1(2) + point2(2))/2;
+        y = y + (y - center_walls(i, 2)) * wall_ext_factor;
+        [x_pix, y_pix] = m_to_pixels(x, y);
+        z = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
+        points_walls_ext{i, 1}(2 * j, :) = [x, y, z];
+
+        x2 = point1(1) + (point1(1) - center_walls(i, 1)) * wall_ext_factor^2;
+        y2 = point1(y) + (point1(y) - center_walls(i, y)) * wall_ext_factor^2;
+        [x2_pix, y2_pix] = m_to_pixels(x2, y2);
+        z2 = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y2_pix), ceil(x2_pix), 1)); %%% CHECK can nan
+        points_walls_ext{i, 1}(2 * j + 1, :) = [x2, y2, z2];
+    end
+
+    [x_wall_ext_pix, y_wall_ext_pix] = m_to_pixels(points_walls_ext{i, 1}(:, 1), points_walls_ext{i, 1}(:, 2));
+    plot([x_wall_ext_pix; x_wall_ext_pix(1)], [y_wall_ext_pix; y_wall_ext_pix(1)], 'o', 'Linewidth', 2, 'Color', 'b');
+end
