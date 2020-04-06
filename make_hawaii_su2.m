@@ -7,7 +7,9 @@ filename_out = 'meshes/hawaii.su2';
 N_points_ff = 128;
 depth_wall = 32;
 ff_ext_factor = 0.975; % Farfield extrude factor
-wall_ext_factor = 1.1;
+wall_ext_factor = 1.05;
+N_domain_r = 64;
+N_domain_theta = N_points_ff;
 
 img = imread(filename_in);
 
@@ -169,3 +171,21 @@ for i = 1:N_islands
     [x_wall_ext_pix, y_wall_ext_pix] = m_to_pixels(points_walls_ext{i, 1}(:, 1), points_walls_ext{i, 1}(:, 2));
     plot([x_wall_ext_pix; x_wall_ext_pix(1)], [y_wall_ext_pix; y_wall_ext_pix(1)], 'o', 'Linewidth', 2, 'Color', 'b');
 end
+
+%% All other points
+points_domain = zeros(N_domain_r * N_domain_theta, 3);
+r = sqrt(linspace(0.1, 1, N_domain_r)) * radius_m_ext * ff_ext_factor; % To make them equally distributed
+theta = linspace(0, 2 * pi, N_domain_theta);
+
+for j = 1:N_domain_r
+    for i = 1:N_domain_theta
+        index = i + j * N_domain_theta;
+        point = to_xyz([r(j), pi/2, theta(i)]);
+        [x_pix, y_pix] = m_to_pixels(point(1), point(2));
+        point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
+        points_domain(index, :) = point;
+    end
+end
+
+points_domain = points_domain(~isnan(points_domain(:, 3)), :);
+N_points_domain = size(points_domain, 1);
