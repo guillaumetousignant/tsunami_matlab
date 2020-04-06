@@ -152,15 +152,15 @@ for i = 1:N_islands
         point2 = points_walls{i, 1}(elements_walls{i, 1}(j, 2) - wall_offset(i), :);
 
         x = (point1(1) + point2(1))/2;
-        x = x + (x - center_walls(i, 1)) * wall_ext_factor;
+        x = center_walls(i, 1) + (x - center_walls(i, 1)) * wall_ext_factor;
         y = (point1(2) + point2(2))/2;
-        y = y + (y - center_walls(i, 2)) * wall_ext_factor;
+        y = center_walls(i, 2) + (y - center_walls(i, 2)) * wall_ext_factor;
         [x_pix, y_pix] = m_to_pixels(x, y);
         z = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
         points_walls_ext{i, 1}(2 * j, :) = [x, y, z];
 
-        x2 = point1(1) + (point1(1) - center_walls(i, 1)) * wall_ext_factor^2;
-        y2 = point1(2) + (point1(2) - center_walls(i, 2)) * wall_ext_factor^2;
+        x2 = center_walls(i, 1) + (point1(1) - center_walls(i, 1)) * wall_ext_factor^2;
+        y2 = center_walls(i, 2) + (point1(2) - center_walls(i, 2)) * wall_ext_factor^2;
         [x2_pix, y2_pix] = m_to_pixels(x2, y2);
         z2 = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y2_pix), ceil(x2_pix), 1)); %%% CHECK can nan
         points_walls_ext{i, 1}(2 * j + 1, :) = [x2, y2, z2];
