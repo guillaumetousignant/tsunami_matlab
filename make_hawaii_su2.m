@@ -12,6 +12,7 @@ N_domain_r = 32;
 N_domain_theta = N_points_ff;
 domain_r_exponent = 0.75;
 saturation_cutoff = 0.1;
+r_start = 0.01;
 
 img = imread(filename_in);
 
@@ -179,7 +180,7 @@ end
 
 %% All other points
 points_domain = zeros(N_domain_r * N_domain_theta, 3);
-r = linspace(0.001, 1, N_domain_r).^domain_r_exponent * radius_m_ext * ff_ext_factor; % To make them equally distributed
+r = linspace(r_start, 1, N_domain_r).^domain_r_exponent * radius_m_ext * ff_ext_factor; % To make them equally distributed
 theta = linspace(0, 2 * pi, N_domain_theta);
 
 for j = 1:N_domain_r
@@ -211,3 +212,9 @@ for i = 1:N_islands
     points_wall_ext(1 + offset_ext:N_points_walls_ext(i) + offset_ext, :) = points_walls_ext{i, 1};
     offset_ext= offset_ext + N_points_walls_ext(i);
 end
+
+center_point = [0, 0, 0];
+[x_center_pix, y_center_pix] = m_to_pixels(center_point(1), center_point(2));
+center_point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_center_pix), ceil(x_center_pix), 1)); %%% CHECK can nan
+
+points = [points_ff; points_wall; points_ff_ext; points_wall_ext; points_domain; center_point];
