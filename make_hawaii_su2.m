@@ -6,6 +6,7 @@ filename_in = 'data/hawaii2.png';
 filename_out = 'meshes/hawaii.su2';
 N_points_ff = 128;
 depth_wall = 32;
+ff_ext_factor = 0.975; % Farfield extrude factor
 
 img = imread(filename_in);
 
@@ -71,7 +72,7 @@ y_boundary = radius_m * sin(ang);
 
 [x_boundary_pix, y_boundary_pix] = m_to_pixels(x_boundary, y_boundary);
 
-plot(x_boundary_pix, y_boundary_pix, 'Linewidth', 2, 'Color', 'r');
+plot([x_boundary_pix, x_boundary_pix(1)], [y_boundary_pix, y_boundary_pix(1)], 'Linewidth', 2, 'Color', 'r', 'LineStyle', '-', 'Marker', 'o');
 
 depths_ff = zeros(N_points_ff, 1);
 for i = 1:N_points_ff
@@ -102,7 +103,8 @@ for i = 1:N_islands
 
     plot([x; x(1)], [y; y(1)], 'Linewidth', 2, 'Color', 'b');
     N_points_walls(i) = length(x);
-    points_walls{i, 1} = [x, y, ones(N_points_walls(i), 1)*depth_wall];
+    [x_m, y_m] = pixels_to_m(x, y);
+    points_walls{i, 1} = [x_m, y_m, ones(N_points_walls(i), 1)*depth_wall];
 
     elements_walls{i, 1} = zeros(N_points_walls(i), 1);
     elements_walls{i, 1}(:, 1) = 1+wall_offset(i):N_points_walls(i)+wall_offset(i);
@@ -113,4 +115,20 @@ for i = 1:N_islands
 end
 
 %% Points
-N_points_ff_extrude = N_points_ff
+N_points_ff_ext = N_points_ff;
+points_ff_ext = zeros(N_points_ff_ext, 3);
+
+for i = 1:N_points_ff_ext
+    point1 = points_ff(elements_ff(i, 1), :);
+    point2 = points_ff(elements_ff(i, 2), :);
+    x = ff_ext_factor * (point1(1) + point2(1))/2;
+    y = ff_ext_factor * (point1(2) + point2(2))/2;
+    [x_pix, y_pix] = m_to_pixels(x, y);
+    z = (depth_ff + interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)))/2;
+    points_ff_ext(i, :) = [x , y, z];
+end
+
+[x_ff_ext_pix, y_ff_ext_pix] = m_to_pixels(points_ff_ext(:, 1), points_ff_ext(:, 2));
+plot([x_ff_ext_pix; x_ff_ext_pix(1)], [y_ff_ext_pix; y_ff_ext_pix(1)], 'o', 'Linewidth', 2, 'Color', 'r');
+
+radius_m_ext = ff_ext_factor * radius_m;
