@@ -8,8 +8,10 @@ N_points_ff = 128;
 depth_wall = 32;
 ff_ext_factor = 0.975; % Farfield extrude factor
 wall_ext_factor = 1.05;
-N_domain_r = 64;
+N_domain_r = 32;
 N_domain_theta = N_points_ff;
+domain_r_exponent = 0.75;
+saturation_cutoff = 0.1;
 
 img = imread(filename_in);
 
@@ -159,14 +161,17 @@ for i = 1:N_islands
         y = center_walls(i, 2) + (y - center_walls(i, 2)) * wall_ext_factor;
         [x_pix, y_pix] = m_to_pixels(x, y);
         z = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
-        points_walls_ext{i, 1}(2 * j, :) = [x, y, z];
+        points_walls_ext{i, 1}(2 * (j - 1) + 1, :) = [x, y, z];
 
         x2 = center_walls(i, 1) + (point1(1) - center_walls(i, 1)) * wall_ext_factor^2;
         y2 = center_walls(i, 2) + (point1(2) - center_walls(i, 2)) * wall_ext_factor^2;
         [x2_pix, y2_pix] = m_to_pixels(x2, y2);
         z2 = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y2_pix), ceil(x2_pix), 1)); %%% CHECK can nan
-        points_walls_ext{i, 1}(2 * j + 1, :) = [x2, y2, z2];
+        points_walls_ext{i, 1}(2 * (j - 1) + 2, :) = [x2, y2, z2];
     end
+
+    points_walls_ext{i, 1} = points_walls_ext{i, 1}(~isnan(points_walls_ext{i, 1}(:, 3)), :);
+    N_points_walls_ext(i, 1) = size(points_walls_ext{i, 1}, 1);
 
     [x_wall_ext_pix, y_wall_ext_pix] = m_to_pixels(points_walls_ext{i, 1}(:, 1), points_walls_ext{i, 1}(:, 2));
     plot([x_wall_ext_pix; x_wall_ext_pix(1)], [y_wall_ext_pix; y_wall_ext_pix(1)], 'o', 'Linewidth', 2, 'Color', 'b');
@@ -174,18 +179,35 @@ end
 
 %% All other points
 points_domain = zeros(N_domain_r * N_domain_theta, 3);
-r = sqrt(linspace(0.1, 1, N_domain_r)) * radius_m_ext * ff_ext_factor; % To make them equally distributed
+r = linspace(0.001, 1, N_domain_r).^domain_r_exponent * radius_m_ext * ff_ext_factor; % To make them equally distributed
 theta = linspace(0, 2 * pi, N_domain_theta);
 
 for j = 1:N_domain_r
     for i = 1:N_domain_theta
-        index = i + j * N_domain_theta;
+        index = i + (j - 1) * N_domain_theta;
         point = to_xyz([r(j), pi/2, theta(i)]);
         [x_pix, y_pix] = m_to_pixels(point(1), point(2));
         point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
+        if img_hsv(ceil(y_pix), ceil(x_pix), 2) < saturation_cutoff
+            point(3) = NaN;
+        end
         points_domain(index, :) = point;
     end
 end
 
 points_domain = points_domain(~isnan(points_domain(:, 3)), :);
 N_points_domain = size(points_domain, 1);
+
+[x_domain_pix, y_domain_pix] = m_to_pixels(points_domain(:, 1), points_domain(:, 2));
+plot([x_domain_pix; x_domain_pix(1)], [y_domain_pix; y_domain_pix(1)], 'x', 'Linewidth', 2, 'Color', 'g');
+
+%% All points together now
+points_wall = zeros(sum(N_points_walls), 3);
+points_wall_ext = zeros(sum(N_points_walls_ext), 3);
+offset_ext = 0;
+for i = 1:N_islands
+    offset = wall_offset(i) - wall_offset(1);
+    points_wall(offset + 1:offset + N_points_walls(i), :) = points_walls{i, 1};
+    points_wall_ext(1 + offset_ext:N_points_walls_ext(i) + offset_ext, :) = points_walls_ext{i, 1};
+    offset_ext= offset_ext + N_points_walls_ext(i);
+end
