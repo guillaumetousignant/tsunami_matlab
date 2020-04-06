@@ -97,11 +97,12 @@ elements_walls = cell(N_islands, 1);
 wall_offset = zeros(N_islands+1, 1);
 wall_offset(1) = N_points_ff;
 N_points_walls = zeros(N_islands, 1);
+center_walls = zeros(N_islands, 2);
 for i = 1:N_islands
     fprintf('Click on points around island #%d. Press enter when done.\n', i);
     [x,y, button] = ginput();
 
-    plot([x; x(1)], [y; y(1)], 'Linewidth', 2, 'Color', 'b');
+    plot([x; x(1)], [y; y(1)], 'Linewidth', 2, 'Color', 'b', 'LineStyle', '-', 'Marker', 'o');
     N_points_walls(i) = length(x);
     [x_m, y_m] = pixels_to_m(x, y);
     points_walls{i, 1} = [x_m, y_m, ones(N_points_walls(i), 1)*depth_wall];
@@ -112,9 +113,13 @@ for i = 1:N_islands
     elements_walls{i, 1}(1:end-1, 2) = 2+wall_offset(i):N_points_walls(i)+wall_offset(i);
 
     wall_offset(i + 1) = wall_offset(i) + N_points_walls(i);
+    center_walls(i, 1) = mean(x_m);
+    center_walls(i, 2) = mean(y_m);
+    [center_x, center_y] = m_to_pixels(center_walls(i, 1), center_walls(i, 2));
+    plot(center_x, center_y, '+', 'Linewidth', 2, 'Color', 'b');
 end
 
-%% Points
+%% Farfield extrude
 N_points_ff_ext = N_points_ff;
 points_ff_ext = zeros(N_points_ff_ext, 3);
 
@@ -132,3 +137,5 @@ end
 plot([x_ff_ext_pix; x_ff_ext_pix(1)], [y_ff_ext_pix; y_ff_ext_pix(1)], 'o', 'Linewidth', 2, 'Color', 'r');
 
 radius_m_ext = ff_ext_factor * radius_m;
+
+%% Islands extrude
