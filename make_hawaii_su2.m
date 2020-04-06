@@ -1,31 +1,11 @@
-function [] = make_hawaii_su2(varargin)
-%MAKE_HAWAII Summary of this function goes here
-%   Detailed explanation goes here
+close all
+clearvars;
+clc;
 
-filename_in = 'data/image.png';
-filename_out = 'output.su2';
+filename_in = 'data/hawaii2.png';
+filename_out = 'meshes/hawaii.su2';
 N_points_farfield = 128;
-
-if ~isempty(varargin)
-    if rem(length(varargin), 2)
-        error('make_circle_su2:unevenArgumentCount', 'Error, uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
-    end
-    for i = 1:2:length(varargin)
-        key = varargin{i};
-        value = varargin{i+1};
-
-        switch lower(key)
-            case "input"
-                filename_in = value;
-            case "output"
-                filename_out = value;
-            case "nptsff"
-                N_points_farfield = value;
-            otherwise
-                warning('Warning, unknown parameter: ''%s'', ignoring.', key);
-        end
-    end
-end
+depth_wall = 32;
 
 img = imread(filename_in);
 
@@ -39,13 +19,13 @@ img_hsv = rgb2hsv(img);
 
 fprintf('Image size: %d, %d\n', size_x, size_y);
 
-radius = min(size_x, size_y)/2;
+radius = min(size_x, size_y)/2 - 16;
 
 hold on
-center_x = size_x/2 + (size_x/2 - radius);
+center_x = size_x/2 + (size_x/2 - radius) - 16;
 center_y = size_y/2;
-%circle(center_x, center_y, radius);
 
+%% Distance
 fprintf('Click on two points with known distance on map.\n');
 [x,y] = ginput(2);
 distance = input('Input distance in meters:\n');
@@ -61,12 +41,13 @@ disp(radius_m);
 depth_map_value = zeros(0, 1);
 depth_map_hue = zeros(0, 1);
 
+%% Depth map
 fprintf('Click on points in increasing order on the colour chart and input depth as a positive number. Press any other button when done.\n');
 [x,y, button] = ginput(1);
 while button == 1
     depth = input('Input depth:\n');
     depth_map_value = [depth_map_value; depth];
-    depth_map_hue = [depth_map_hue; img_hsv(round(y), round(x), 1)];
+    depth_map_hue = [depth_map_hue; img_hsv(ceil(y), ceil(x), 1)];
     [x,y, button] = ginput(1);
 end
 
@@ -76,7 +57,6 @@ for i = 1:length(depth_map_value)
     fprintf('    %5.5g    %5.5g\n', depth_map_value(i), depth_map_hue(i));
 end
 
-points = zeros(0, 3);
 %fprintf('Click on a point to get depth.\n');
 %[x,y] = ginput(1);
 %hue = img_hsv(round(y), round(x), 1);
@@ -84,13 +64,50 @@ points = zeros(0, 3);
 %depth = interp1(depth_map_hue, depth_map_value, hue);
 %disp(depth);
 
+%% Farfield
 ang = linspace(0, 2 * pi, N_points_farfield); 
 x_boundary = radius_m * cos(ang);
 y_boundary = radius_m * sin(ang);
 
 [x_boundary_pix, y_boundary_pix] = m_to_pixels(x_boundary, y_boundary);
 
-plot(x_boundary_pix, y_boundary_pix);
+plot(x_boundary_pix, y_boundary_pix, 'Linewidth', 2, 'Color', 'r');
 
+depths_ff = zeros(N_points_farfield, 1);
+for i = 1:N_points_farfield
+    depths_ff(i) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_boundary_pix(i)), ceil(x_boundary_pix(i)), 1));
 end
 
+depths_ff = depths_ff(~isnan(depths_ff)); % Is we fall on black hue will be NaN.
+depth_ff = mean(depths_ff);
+
+points_ff = [x_boundary', y_boundary', ones(N_points_farfield, 1) * depth_ff];
+
+elements_ff = zeros(N_points_farfield, 2);
+elements_ff(:, 1) = 1:N_points_farfield;
+elements_ff(end, 2) = 1;
+elements_ff(1:end-1, 2) = 2:N_points_farfield;
+
+%% Walls
+N_islands = input('Input number of islands:\n');
+
+points_walls = cell(N_islands, 1);
+elements_walls = cell(N_islands, 1);
+wall_offset = zeros(N_islands+1, 1);
+wall_offset(1) = N_points_farfield;
+N_points_walls = zeros(N_islands, 1);
+for i = 1:N_islands
+    fprintf('Click on points around island #%d. Press enter when done.\n', i);
+    [x,y, button] = ginput();
+
+    plot([x; x(1)], [y; y(1)], 'Linewidth', 2, 'Color', 'b');
+    N_points_walls(i) = length(x);
+    points_walls{i, 1} = [x, y, ones(N_points_walls(i), 1)*depth_wall];
+
+    elements_walls{i, 1} = zeros(N_points_walls(i), 1);
+    elements_walls(:, 1) = 1+wall_offset(i):N_points_walls(i)+wall_offset(i);
+    elements_walls(end, 2) = 1+wall_offset(i);
+    elements_walls(1:end-1, 2) = 2+wall_offset(i):N_points_walls(i)+wall_offset(i);
+
+    wall_offset(i + 1) = wall_offset(i) + N_points_walls(i);
+end
