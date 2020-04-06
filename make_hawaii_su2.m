@@ -218,3 +218,9 @@ center_point = [0, 0, 0];
 center_point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_center_pix), ceil(x_center_pix), 1)); %%% CHECK can nan
 
 points = [points_ff; points_wall; points_ff_ext; points_wall_ext; points_domain; center_point];
+N_points = size(points, 1);
+
+%% Delaunay
+triangles = delaunay(points(:, 1), points(:, 2));
+figure()
+trisurf(triangles, points(:, 1), points(:, 2), -points(:, 3));
