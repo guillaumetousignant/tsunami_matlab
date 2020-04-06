@@ -62,7 +62,7 @@ trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
 
 g = 9.81;                           % [m/s^2]   Gravity
 c_water = 1481;                     % [m/s]     Speed of sound
-frequency = omega./2*pi;            % [1/s]     Frequency of wave
+frequency = omega./(2*pi);            % [1/s]     Frequency of wave
 period = 1./frequency;              % [s]       Period of wave
 lambda = c_water .* period;         % [m]       Wavelength of wave
 k = 2*pi./lambda;                   % [1/m]     Wave number 
