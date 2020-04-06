@@ -13,7 +13,7 @@ N_domain_theta = N_points_ff;
 domain_r_exponent = 0.75;
 saturation_cutoff = 0.1;
 r_start = 0.01;
-ratio_high = 5;
+ratio_high = 2;
 
 img = imread(filename_in);
 
@@ -250,10 +250,13 @@ for i = 1:N_triangles
 
     if (ratio1 > ratio_high) && (ratio2 > ratio_high)
         points(triangles(i, 1), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
+        disp('Noot');
     elseif (ratio3 > ratio_high) && (ratio4 > ratio_high)
         points(triangles(i, 2), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
+        disp('Noot');
     elseif (ratio5 > ratio_high) && (ratio6 > ratio_high)
         points(triangles(i, 3), 3) = (points(triangles(i, 1), 3) + points(triangles(i, 2), 3) + points(triangles(i, 3), 3))/3;
+        disp('Noot');
     end
 end
 
