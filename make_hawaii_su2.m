@@ -2,7 +2,7 @@ close all
 clearvars;
 clc;
 
-filename_in = 'data/hawaii2.png';
+filename_in = 'data/hawaii4.png';
 filename_out = 'meshes/hawaii.su2';
 N_points_ff = 128;
 depth_wall = 32;
@@ -218,9 +218,26 @@ center_point = [0, 0, 0];
 center_point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_center_pix), ceil(x_center_pix), 1)); %%% CHECK can nan
 
 points = [points_ff; points_wall; points_ff_ext; points_wall_ext; points_domain; center_point];
+points(:, 1) = -points(:, 1); % Images index the other way round oops
 N_points = size(points, 1);
 
 %% Delaunay
 triangles = delaunay(points(:, 1), points(:, 2));
+N_triangles = size(triangles, 1);
+
+%% Deleting 'land' elements
+good_triangles = true(N_triangles, 1);
+N_points_wall = sum(N_points_walls);
+wall_start = N_points_ff + 1;
+wall_end = N_points_ff + N_points_wall;
+
+for i = 1:N_triangles
+    good_triangles(i, 1) = ~all((triangles(i, :) >= wall_start) & (triangles(i, :) <= wall_end));
+end
+
+triangles = triangles(good_triangles, :);
+N_triangles = size(triangles, 1);
+
+%% Plotting
 figure()
 trisurf(triangles, points(:, 1), points(:, 2), -points(:, 3));
