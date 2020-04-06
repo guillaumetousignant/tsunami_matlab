@@ -105,9 +105,9 @@ for i = 1:N_islands
     points_walls{i, 1} = [x, y, ones(N_points_walls(i), 1)*depth_wall];
 
     elements_walls{i, 1} = zeros(N_points_walls(i), 1);
-    elements_walls(:, 1) = 1+wall_offset(i):N_points_walls(i)+wall_offset(i);
-    elements_walls(end, 2) = 1+wall_offset(i);
-    elements_walls(1:end-1, 2) = 2+wall_offset(i):N_points_walls(i)+wall_offset(i);
+    elements_walls{i, 1}(:, 1) = 1+wall_offset(i):N_points_walls(i)+wall_offset(i);
+    elements_walls{i, 1}(end, 2) = 1+wall_offset(i);
+    elements_walls{i, 1}(1:end-1, 2) = 2+wall_offset(i):N_points_walls(i)+wall_offset(i);
 
     wall_offset(i + 1) = wall_offset(i) + N_points_walls(i);
 end
