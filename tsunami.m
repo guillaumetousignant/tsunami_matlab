@@ -225,7 +225,11 @@ if write_video
     open(writerObj);
 end
 
-figure();
+if write_video
+    figure('Position', [10 10 1920 1080]);
+else
+    figure();
+end
 
 t = 0;
 while t <= t_end
