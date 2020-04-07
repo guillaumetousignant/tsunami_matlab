@@ -83,7 +83,7 @@ plot([x_boundary_pix, x_boundary_pix(1)], [y_boundary_pix, y_boundary_pix(1)], '
 
 depths_ff = zeros(N_points_ff, 1);
 for i = 1:N_points_ff
-    depths_ff(i) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_boundary_pix(i)), ceil(x_boundary_pix(i)), 1)); %%% CHECK can nan
+    depths_ff(i) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_boundary_pix(i)), ceil(x_boundary_pix(i)), 1), 'linear', 'extrap'); %%% CHECK can nan
 end
 
 depths_ff = depths_ff(~isnan(depths_ff)); % Is we fall on black hue will be NaN.
@@ -136,7 +136,7 @@ for i = 1:N_points_ff_ext
     x = ff_ext_factor * (point1(1) + point2(1))/2;
     y = ff_ext_factor * (point1(2) + point2(2))/2;
     [x_pix, y_pix] = m_to_pixels(x, y);
-    z = (depth_ff + interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)))/2; %%% CHECK can nan
+    z = (depth_ff + interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1), 'linear', 'extrap'))/2; %%% CHECK can nan
     points_ff_ext(i, :) = [x, y, z];
 end
 
@@ -162,13 +162,19 @@ for i = 1:N_islands
         y = (point1(2) + point2(2))/2;
         y = center_walls(i, 2) + (y - center_walls(i, 2)) * wall_ext_factor;
         [x_pix, y_pix] = m_to_pixels(x, y);
-        z = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
+        z = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1), 'linear', 'extrap'); %%% CHECK can nan
+        if img_hsv(ceil(y_pix), ceil(x_pix), 2) < saturation_cutoff
+            z = NaN;
+        end
         points_walls_ext{i, 1}(2 * (j - 1) + 1, :) = [x, y, z];
 
         x2 = center_walls(i, 1) + (point1(1) - center_walls(i, 1)) * wall_ext_factor^2;
         y2 = center_walls(i, 2) + (point1(2) - center_walls(i, 2)) * wall_ext_factor^2;
         [x2_pix, y2_pix] = m_to_pixels(x2, y2);
-        z2 = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y2_pix), ceil(x2_pix), 1)); %%% CHECK can nan
+        z2 = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y2_pix), ceil(x2_pix), 1), 'linear', 'extrap'); %%% CHECK can nan
+        if img_hsv(ceil(y2_pix), ceil(x2_pix), 2) < saturation_cutoff
+            z2 = NaN;
+        end
         points_walls_ext{i, 1}(2 * (j - 1) + 2, :) = [x2, y2, z2];
     end
 
@@ -189,7 +195,7 @@ for j = 1:N_domain_r
         index = i + (j - 1) * N_domain_theta;
         point = to_xyz([r(j), pi/2, theta(i)]);
         [x_pix, y_pix] = m_to_pixels(point(1), point(2));
-        point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1)); %%% CHECK can nan
+        point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_pix), ceil(x_pix), 1), 'linear', 'extrap'); %%% CHECK can nan
         if img_hsv(ceil(y_pix), ceil(x_pix), 2) < saturation_cutoff
             point(3) = NaN;
         end
@@ -219,7 +225,7 @@ end
 
 center_point = [0, 0, 0];
 [x_center_pix, y_center_pix] = m_to_pixels(center_point(1), center_point(2));
-center_point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_center_pix), ceil(x_center_pix), 1)); %%% CHECK can nan
+center_point(3) = interp1(depth_map_hue, depth_map_value, img_hsv(ceil(y_center_pix), ceil(x_center_pix), 1), 'linear', 'extrap'); %%% CHECK can nan
 
 points = [points_ff; points_wall; points_ff_ext; points_wall_ext; points_domain; center_point];
 points(:, 1) = -points(:, 1); % Images index the other way round oops
