@@ -266,7 +266,7 @@ for i = 1:N_triangles
 end
 
 for i = 1:N_points
-    points(i, 3) = min(points(i, 3), depth_wall);
+    points(i, 3) = max(points(i, 3), depth_wall);
 end
 
 %% Plotting
