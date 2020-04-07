@@ -265,6 +265,10 @@ for i = 1:N_triangles
     end
 end
 
+for i = 1:N_points
+    points(i, 3) = min(points(i, 3), depth_wall);
+end
+
 %% Plotting
 figure()
 trisurf(triangles, points(:, 1), points(:, 2), -points(:, 3));
