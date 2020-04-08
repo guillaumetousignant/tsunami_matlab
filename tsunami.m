@@ -217,6 +217,11 @@ for wave = 1:N_waves
     % K * eta = B
     eta(:, wave) = K\B_exp;
 
+    if any(isnan(eta(:, wave)))
+        eta(isnan(eta(:, wave)), wave) = 0.0;
+        warning('tsunami:nanInEta', 'Warning, there were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.');
+    end
+
     write_solution([data_path filesep data_filename sprintf('_omega%g', omega(wave)) data_ext], eta(:, wave), amplitude(wave), omega(wave));
 end
 
