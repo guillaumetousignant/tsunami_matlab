@@ -15,7 +15,7 @@ t_end = inf;
 
 if ~isempty(varargin)
     if rem(length(varargin), 2)
-        error('tsunami:unevenArgumentCount', 'Error, uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
+        error('tsunami:unevenArgumentCount', 'Error: Uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
     end
     for i = 1:2:length(varargin)
         key = varargin{i};
@@ -49,7 +49,7 @@ if ~isempty(varargin)
 end
 
 if length(omega) ~= length(amplitude)
-    error('tsunami:numberOfWavesNotEqual', 'Error, the number of amplitudes and omega input is not the same. Exiting.');
+    error('tsunami:numberOfWavesNotEqual', 'Error: The number of amplitudes and omega input is not the same. Exiting.');
 end
 
 % File input
@@ -219,7 +219,7 @@ for wave = 1:N_waves
 
     if any(isnan(eta(:, wave)))
         eta(isnan(eta(:, wave)), wave) = 0.0;
-        warning('tsunami:nanInEta', 'Warning, there were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.');
+        warning('tsunami:nanInEta', 'Warning: There were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.');
     end
 
     write_solution([data_path filesep data_filename sprintf('_omega%g', omega(wave)) data_ext], eta(:, wave), amplitude(wave), omega(wave));
