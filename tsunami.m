@@ -63,7 +63,8 @@ trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
 g = 9.81;                           % [m/s^2]   Gravity
 frequency = omega./(2*pi);          % [1/s]     Frequency of wave
 period = 1./frequency;              % [s]       Period of wave
-[R, I] = max(abs(points(1, :)));    % [m]       Farfield radius
+[~, I] = max(abs(points(1, :)));    % [m]       Farfield radius
+R = sqrt(points(1, I)^2 + points(2, I)^2);
 h = points(3, I);                   % [m]       Farfield depth
 k = omega./sqrt(g * h);             % [1/m]     k used in textbook, see 4.1.11 
 lambda = 2*pi./k;                   % [m]       Wavelength of wave
