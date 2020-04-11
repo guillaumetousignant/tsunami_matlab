@@ -237,6 +237,7 @@ end
 
 t = 0;
 max_eta = max(abs(eta(:)));
+max_depth = max(points(3, :));
 while t <= t_end
     t = t + time_step;
     ksi = zeros(E, 1);
@@ -248,7 +249,7 @@ while t <= t_end
     trimesh(elements', points(1, :)', points(2, :)', ksi);
     hold off
     title(sprintf('%gs', t));
-    axis([-R, R, -R, R, -h, max_eta]);
+    axis([-R, R, -R, R, -max_depth, max_eta]);
     drawnow;
     if write_video
         writeVideo(writerObj, getframe(gcf));
