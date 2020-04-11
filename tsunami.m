@@ -236,6 +236,7 @@ else
 end
 
 t = 0;
+max_eta = max(eta(:));
 while t <= t_end
     t = t + time_step;
     ksi = zeros(E, 1);
@@ -247,7 +248,7 @@ while t <= t_end
     trimesh(elements', points(1, :)', points(2, :)', ksi);
     hold off
     title(sprintf('%gs', t));
-    axis([-R, R, -R, R, -h, 10 * max(amplitude)]);
+    axis([-R, R, -R, R, -h, max_eta]);
     drawnow;
     if write_video
         writeVideo(writerObj, getframe(gcf));
