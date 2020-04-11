@@ -176,7 +176,7 @@ for wave = 1:N_waves
             K_3(i, 2*j+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
         end
     end
-    K_3 = -k(wave) * h/2 * K_3;
+    K_3 = -k(wave) * h/2 * K_3; %%% CHECK, big values
 
     % Building Q_4
     % First row
