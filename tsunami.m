@@ -48,8 +48,8 @@ if ~isempty(varargin)
     end
 end
 
-if length(omega) ~= length(amplitude)
-    error('tsunami:numberOfWavesNotEqual', 'Error: The number of amplitudes and omega input is not the same. Exiting.');
+if (length(omega) ~= length(amplitude)) || (length(omega) ~= length(theta_I))
+    error('tsunami:numberOfWavesNotEqual', 'Error: The number of amplitudes, omega and theta input is not the same. Exiting.');
 end
 
 % File input
@@ -161,7 +161,7 @@ for wave = 1:N_waves
         L(i) = sqrt((points(1, farfield(2, i)) - points(1, farfield(1, i)))^2 + (points(2, farfield(2, i)) - points(2, farfield(1, i)))^2);
         sph = to_sph([(points(1, farfield(1, i)) + points(1, farfield(2, i)))/2, (points(2, farfield(1, i)) + points(2, farfield(2, i)))/2, 0]);
         theta(i) = sph(3);
-        q(i) = 1i * cos(theta(i) - theta(1)) * exp(1i * k(wave) * R * cos(theta(i) - theta_I));
+        q(i) = 1i * cos(theta(i) - theta(1)) * exp(1i * k(wave) * R * cos(theta(i) - theta_I(wave)));
     end
 
     % First row
@@ -192,8 +192,8 @@ for wave = 1:N_waves
     % Building Q_5
     Q_5(1) = besselj(0, k(wave)*R) * besselh_prime(0, k(wave)*R); % Assumes J_0 is J_0(kR)
     for j = 1:m
-        Q_5(2*j) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * cos(j * theta_I);
-        Q_5(2*j + 1) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * sin(j * theta_I);
+        Q_5(2*j) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * cos(j * theta_I(wave));
+        Q_5(2*j + 1) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * sin(j * theta_I(wave));
     end
     Q_5 = amplitude(wave) * 2 * pi * R * k(wave) * h * Q_5; %%% CHECK amplitude not here in textbook, but seems like it should be based on 4.11.1 and Q_5 definition
 
