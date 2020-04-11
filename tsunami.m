@@ -236,7 +236,7 @@ else
 end
 
 t = 0;
-max_eta = max(real(eta(:)));
+max_eta = max(abs(eta(:)));
 while t <= t_end
     t = t + time_step;
     ksi = zeros(E, 1);
