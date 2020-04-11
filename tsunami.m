@@ -247,7 +247,7 @@ while t <= t_end
     trimesh(elements', points(1, :)', points(2, :)', ksi);
     hold off
     title(sprintf('%gs', t));
-    axis([-R, R, -R, R, -h, 2 * max(amplitude)]);
+    axis([-R, R, -R, R, -h, 10 * max(amplitude)]);
     drawnow;
     if write_video
         writeVideo(writerObj, getframe(gcf));
