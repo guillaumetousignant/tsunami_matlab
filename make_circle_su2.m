@@ -127,8 +127,9 @@ function make_circle_su2(varargin)
 
         fprintf(su2_file, 'MARKER_TAG= farfield\n');
         fprintf(su2_file, 'MARKER_ELEMS= %g\n', nsides);
-        for k = 1:nsides
-            fprintf(su2_file, '3 %g %g\n', nsides * nlevels + k, nsides * nlevels + k*(k~=nsides) + 1);
+        fprintf(su2_file, '3 %g %g\n', nsides * nlevels + nsides, nsides * nlevels + 1);
+        for k = 2:nsides
+            fprintf(su2_file, '3 %g %g\n', nsides * nlevels + k - 1, nsides * nlevels + k);
         end
 
         fclose(su2_file);
