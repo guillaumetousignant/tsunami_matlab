@@ -165,15 +165,15 @@ for wave = 1:N_waves
     % First row
     K_3(1, 1) = 2 * besselh_prime(0, k(wave)*R) * L(1);
     for j = 1:m
-        K_3(1, 2*j) = besselh_prime(j, cos(j * theta(P) + cos(j * theta(1)))) * L(1);
-        K_3(1, 2*j+1) = besselh_prime(j, sin(j * theta(P) + sin(j * theta(1)))) * L(1);
+        K_3(1, 2*j)   = besselh_prime(j, k(wave)*R) * (cos(j * theta(P)) + cos(j * theta(1))) * L(1);
+        K_3(1, 2*j+1) = besselh_prime(j, k(wave)*R) * (sin(j * theta(P)) + sin(j * theta(1))) * L(1);
     end
     % Other rows
     for i = 2:P
         K_3(i, 1) = 2 * besselh_prime(0, k(wave)*R) * L(i);
         for j = 1:m
-            K_3(i, 2*j) = besselh_prime(j, cos(j * theta(i-1) + cos(j * theta(i)))) * L(i);
-            K_3(i, 2*j+1) = besselh_prime(j, sin(j * theta(i-1) + sin(j * theta(i)))) * L(i);
+            K_3(i, 2*j)   = besselh_prime(j, k(wave)*R) * (cos(j * theta(i-1)) + cos(j * theta(i))) * L(i);
+            K_3(i, 2*j+1) = besselh_prime(j, k(wave)*R) * (sin(j * theta(i-1)) + sin(j * theta(i))) * L(i);
         end
     end
     K_3 = -k(wave) * h/2 * K_3; %%% CHECK, big values
