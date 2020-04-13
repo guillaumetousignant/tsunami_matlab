@@ -236,7 +236,7 @@ else
 end
 
 t = 0;
-max_eta = max(abs(eta(:)));
+max_eta = sum(max(abs(eta)));
 max_depth = max(points(3, :));
 while t <= t_end
     t = t + time_step;
