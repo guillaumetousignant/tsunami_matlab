@@ -1,18 +1,33 @@
 function make_circle_su2(varargin)
-%MAKE_CIRCLE_SU2 Summary of this function goes here
-%   Parameters: filename, nlevels, nsides, radius, ffradius, fact, hfarfield, hwall, hexp
-%   hexp under 1 makes the height steeper closer to the wall
+%MAKE_CIRCLE_SU2 This program creates a mesh with a circular island.
+%   The input is made with parameter-value pairs, using the following syntax: 
+%   "make_circle_su2('filename', 'meshes/mesh.su2', 'radius', 0.5, 'PARAMETER', VALUE, [...]);"
+%   All parameters are optional, defaults are set otherwise.
+%
+%       Parameter   [default value]         Descrpition 
+%
+%       filename    ['meshes/input.su2']    Output filename or path to mesh file to be written.
+%       nlevels     [8]                     Number of elements in the radial direction.
+%       nsides      [32]                    Number of elements in the angular direction.
+%       radius      [0.5]                   Radius oh the island, in m.
+%       ffradius    [5]                     Radius of the domain, in m.
+%       fact        [1.75]                  Bias of the elements towards the island. 1 makes the elements equally spaced radially. Higher than 1 create smaller elements closer to the island, lower than 1 makes them bigger.
+%       hfarfield   [10]                    Water depth at the edge of the domain, in m.
+%       hwall       [1]                     Water depth at the island, in m.
+%       hexp        [0.5]                   Bias of the water depth. 1 is linear, higher than 1 makes it deeper closer to the island, lower than 1 makes it deeper near the edge of the domain.
 
-    filename = 'output.su2';
+    % Default values
+    filename = 'meshes/input.su2';
     nlevels = 8;
     nsides = 32;
-    radius = 0.2;
-    ffradius = 0.5;
+    radius = 0.5;
+    ffradius = 5;
     fact = 1.75;
-    hfarfield = 0.1;
-    hwall = 0.01;
+    hfarfield = 10;
+    hwall = 1;
     hexp = 0.5;
 
+    % Input parsing
     if ~isempty(varargin)
         if rem(length(varargin), 2)
             error('make_circle_su2:unevenArgumentCount', 'Error, uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
@@ -78,9 +93,7 @@ function make_circle_su2(varargin)
     end
 
     plot_circle();
-
     plot_circle_3D();
-
     write_su2(filename);
 
     function plot_circle()
@@ -102,8 +115,6 @@ function make_circle_su2(varargin)
         zlim([-2*ffradius, 0]);
     end
 
-    
-    
     function write_su2(filename)
         su2_file = fopen(filename, 'w');
     
