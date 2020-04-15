@@ -30,7 +30,7 @@ t_end = inf;                    % [s]
 % Input parsing
 if ~isempty(varargin)
     if rem(length(varargin), 2)
-        error('tsunami:unevenArgumentCount', 'Error: Uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
+        error('tsunami:unevenArgumentCount', 'Uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
     end
     for i = 1:2:length(varargin)
         key = varargin{i};
@@ -56,13 +56,13 @@ if ~isempty(varargin)
             case "m"
                 m = value;
             otherwise
-                warning('Warning, unknown parameter: ''%s'', ignoring.', key);
+                warning('Unknown parameter: ''%s'', ignoring.\n', key);
         end
     end
 end
 
 if (length(omega) ~= length(amplitude)) || (length(omega) ~= length(theta_I))
-    error('tsunami:numberOfWavesNotEqual', 'Error: The number of amplitudes, omega and theta input is not the same. Exiting.');
+    error('tsunami:numberOfWavesNotEqual', 'The number of amplitudes, omega and theta input is not the same. Exiting.');
 end
 
 write_data = ~isempty(output_filename);
@@ -235,7 +235,7 @@ for wave = 1:N_waves
     % Removing NaNs that appear in the Hawaii case. Should not be needed, possibly caused by bad mesh
     if any(isnan(eta(:, wave)))
         eta(isnan(eta(:, wave)), wave) = 0.0;
-        warning('tsunami:nanInEta', 'Warning: There were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.');
+        warning('tsunami:nanInEta', 'There were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.\n');
     end
 
     % Eta output for other programs
