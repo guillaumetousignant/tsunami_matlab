@@ -241,7 +241,7 @@ wall_start = N_points_ff + 1;
 wall_end = N_points_ff + N_points_wall;
 
 for i = 1:N_triangles
-    good_triangles(i, 1) = ~all((triangles(i, :) >= wall_start) & (triangles(i, :) <= wall_end)); %%% CHECK Could also delete elements which have all points on the same island
+    good_triangles(i, 1) = ~all((triangles(i, :) >= wall_start) & (triangles(i, :) <= wall_end)); %%% CHECK Could also delete elements which have all points on the same island, or elements whose center is land
 end
 
 triangles = triangles(good_triangles, :);
