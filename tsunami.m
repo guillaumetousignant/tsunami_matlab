@@ -16,16 +16,18 @@ function [] = tsunami(varargin)
 %       maxt        [inf]                   Time up to which the visualisation is run.
 %       m           [8]                     Truncation order of Fourier expansions in incoming and scattered waves.
 
+% Default values
 input_filename = 'meshes/input.su2';
 output_filename = 'data/output.dat';
 video_output_filename = '';
-amplitude = 1;
+amplitude = 1;                  % [m]
 omega = 1;                      % [rad/s]
 m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
-theta_I = pi/8;
-time_step = 0.1;
-t_end = inf;
+theta_I = pi/8;                 % [rad]
+time_step = 0.1;                % [s]
+t_end = inf;                    % [s]                 
 
+% Input parsing
 if ~isempty(varargin)
     if rem(length(varargin), 2)
         error('tsunami:unevenArgumentCount', 'Error: Uneven argument count. Arguments should follow the "''-key'', value" format. Exiting.');
@@ -63,16 +65,20 @@ if (length(omega) ~= length(amplitude)) || (length(omega) ~= length(theta_I))
     error('tsunami:numberOfWavesNotEqual', 'Error: The number of amplitudes, omega and theta input is not the same. Exiting.');
 end
 
+write_data = ~isempty(output_filename);
 write_video = ~isempty(video_output_filename);
+if write_data
+    [data_path, data_filename, data_ext] = fileparts(output_filename);
+end
 
-% File input
+% Mesh input
 [points, elements, wall, farfield] = read_su2(input_filename);
 
 % Plotting the mesh
 figure()
-% Aspect ratio will always be wrong here, as there is no "axis equal" call for 3D plots.
-trimesh(elements', points(1, :)', points(2, :)', -points(3, :)');
+trimesh(elements', points(1, :)', points(2, :)', -points(3, :)'); % Aspect ratio will always be wrong here, as there is no "axis equal" call for 3D plots.
 
+% Constants
 g = 9.81;                           % [m/s^2]   Gravity
 frequency = omega./(2*pi);          % [1/s]     Frequency of wave
 period = 1./frequency;              % [s]       Period of wave
@@ -94,17 +100,14 @@ for wave = 1:N_waves
     fprintf('    Wave number = %g rad/m\n', k(wave));
 end
 
+% Sizes
 M = 2*m + 1;
 P = size(farfield, 2);          % Number of nodes on the boundary
 E = size(points, 2);            % Total number of nodes in and on the boundary
 N_elements = size(elements, 2); % Number of elements
-
 eta = zeros(E, N_waves);        % Displacement
 
-if ~isempty(output_filename)
-    [data_path, data_filename, data_ext] = fileparts(output_filename);
-end
-
+% Calculation
 for wave = 1:N_waves
     K_1 = zeros(E, E); % E x E
     K_2 = zeros(M, M); % M x M
@@ -125,7 +128,7 @@ for wave = 1:N_waves
             points(2, elements(3, e))];
         %a = [x(2)*y(3) - x(3)*y(2); 
         %     x(3)*y(1) - x(1)*y(3);
-        %     x(1)*y(2) - x(2)*y(1)];
+        %     x(1)*y(2) - x(2)*y(1)]; % Not needed
         b = [y(2) - y(3);
             y(3) - y(1);
             y(1) - y(2)];
@@ -166,7 +169,7 @@ for wave = 1:N_waves
     end
     K_2 = K_2 * pi * k(wave) * R * h;
 
-    % Building K_3
+    % Parameters
     L = zeros(P, 1);
     theta = zeros(P, 1);
     q = zeros(P, 1);
@@ -177,6 +180,7 @@ for wave = 1:N_waves
         q(i) = 1i * cos(theta(i) - theta(1)) * exp(1i * k(wave) * R * cos(theta(i) - theta_I(wave)));
     end
 
+    % Building K_3
     % First row
     K_3(1, 1) = 2 * besselh_prime(0, k(wave)*R) * L(1);
     for j = 1:m
@@ -203,7 +207,7 @@ for wave = 1:N_waves
     Q_4 = k(wave) * h/2 * Q_4;
 
     % Building Q_5
-    Q_5(1) = besselj(0, k(wave)*R) * besselh_prime(0, k(wave)*R); % Assumes J_0 is J_0(kR)
+    Q_5(1) = besselj(0, k(wave)*R) * besselh_prime(0, k(wave)*R); % Assumes J_n is J_n(kR), like H_n is H_n(kr)
     for j = 1:m
         Q_5(2*j) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * cos(j * theta_I(wave));
         Q_5(2*j + 1) = 1i^j * besselj(j, k(wave)*R) * besselh_prime(j, k(wave)*R) * sin(j * theta_I(wave));
@@ -211,31 +215,31 @@ for wave = 1:N_waves
     Q_5 = amplitude(wave) * 2 * pi * R * k(wave) * h * Q_5; %%% CHECK amplitude not here in textbook, but seems like it should be based on 4.11.1 and Q_5 definition
 
     %% Full system
-    LHS = K_3 * (K_2^-1) * (K_3');
+    LHS = K_3 * K_2^-1 * K_3';
+    B = Q_4 + K_3*K_2^-1 * Q_5;
+
+    % Expansion of LHS and B
     LHS_exp = zeros(size(points, 2), size(points, 2));
+    B_exp = zeros(size(points, 2), 1);
     for i = 1:P
+        B_exp(farfield(1, i)) = B(i);
         for j = 1:P
             LHS_exp(farfield(1, i), farfield(1, j)) = LHS(i, j);
         end
     end
 
     K = K_1 - LHS_exp;
-    B = Q_4 + K_3*K_2^-1 * Q_5;
-
-    B_exp = zeros(size(points, 2), 1);
-    for i = 1:P
-        B_exp(farfield(1, i)) = B(i);
-    end
-
     % K * eta = B
     eta(:, wave) = K\B_exp;
 
+    % Removing NaNs that appear in the Hawaii case. Should not be needed, possibly caused by bad mesh
     if any(isnan(eta(:, wave)))
         eta(isnan(eta(:, wave)), wave) = 0.0;
         warning('tsunami:nanInEta', 'Warning: There were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.');
     end
 
-    if ~isepmty(output_filename)
+    % Eta output for other programs
+    if write_data
         write_solution([data_path filesep data_filename sprintf('_omega%g', omega(wave)) data_ext], eta(:, wave), amplitude(wave), omega(wave));
     end
 end
@@ -252,6 +256,7 @@ else
     figure();
 end
 
+% Visualisation of the results
 t = 0;
 max_eta = sum(max(abs(eta)));
 max_depth = max(points(3, :));
@@ -275,8 +280,4 @@ end
 if write_video
     close(writerObj);
 end
-end
-
-function [result] = besselh_prime(nu, z)
-    result = nu * besselh(nu, z)/z - besselh(nu+1, z);
 end
