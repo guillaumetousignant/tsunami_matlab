@@ -7,7 +7,7 @@ function tsunami(varargin)
 %       Parameter   [default value]         Descrpition 
 %
 %       input       ['meshes/input.su2']    Input filename or path to mesh file to be used.
-%       output      ['data/output.dat']     Output filename or path to data file that is written. Contains eta values for visualisation. Set to '' or [] to disable writing.
+%       output      ['']                    Output filename or path to data file that is written. Contains eta values for visualisation. Set to '' or [] to disable writing.
 %       amplitude   [1]                     Value or array of values for wave amplitude, in m. Must have same number of values as omega and theta.
 %       omega       [1]                     Value or array of values for wave omega, in rad/s. Must have same number of values as amplitude and theta.
 %       theta       [pi/8]                  Value or array of values for wave incoming angle, in rad. Must have same number of values as amplitude and omega.
@@ -18,7 +18,7 @@ function tsunami(varargin)
 
 % Default values
 input_filename = 'meshes/input.su2';
-output_filename = 'data/output.dat';
+output_filename = '';
 video_output_filename = '';
 amplitude = 1;                  % [m]
 omega = 1;                      % [rad/s]
