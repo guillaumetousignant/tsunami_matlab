@@ -261,7 +261,6 @@ t = 0;
 max_eta = sum(max(abs(eta)));
 max_depth = max(points(3, :));
 while t <= t_end
-    t = t + time_step;
     ksi = zeros(E, 1);
     for wave = 1:N_waves
         ksi = ksi + real(eta(:, wave) * exp(-1i * omega(wave) * t));
@@ -276,6 +275,7 @@ while t <= t_end
     if write_video
         writeVideo(writerObj, getframe(gcf));
     end
+    t = t + time_step;
 end
 if write_video
     close(writerObj);
