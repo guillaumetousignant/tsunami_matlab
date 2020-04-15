@@ -1,4 +1,4 @@
-function [] = tsunami(varargin)
+function tsunami(varargin)
 %TSUNAMI This program computes water displacement caused by waves.
 %   The input is made with parameter-value pairs, using the following syntax: 
 %   "tsunami('input', 'meshes/mesh.su2', 'timestep', 2, 'PARAMETER', VALUE, [...]);"
