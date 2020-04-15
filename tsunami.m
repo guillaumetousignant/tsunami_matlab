@@ -1,15 +1,28 @@
 function [] = tsunami(varargin)
-%TSUNAMI Summary of this function goes here
-%   Parameters: input, output, amplitude, omega, theta, video, videooutput, timestep, maxt, m
+%TSUNAMI This program computes water displacement caused by waves.
+%   The input is made with parameter-value pairs, using the following syntax: 
+%   "tsunami('input', 'meshes/mesh.su2', 'timestep', 2, 'PARAMETER', VALUE, [...]);"
+%   All parameters are optional, defaults are set otherwise.
+%
+%       Parameter   [default value]         Descrpition 
+%
+%       input       ['meshes/input.su2']    Input filename or path to mesh file to be used.
+%       output      ['data/output.dat']     Output filename or path to data file that is written. Contains eta values for visualisation. Set to '' or [] to disable writing.
+%       amplitude   [1]                     Value or array of values for wave amplitude, in m. Must have same number of values as omega and theta.
+%       omega       [1]                     Value or array of values for wave omega, in rad/s. Must have same number of values as amplitude and theta.
+%       theta       [pi/8]                  Value or array of values for wave incoming angle, in rad. Must have same number of values as amplitude and omega.
+%       videooutput ['']                    Output filename or path to video file that is written. Contains eta values for visualisation. Set to '' or [] to disable writing.
+%       timestep    [0.1]                   Time step used when displaying the simulation, in seconds.
+%       maxt        [inf]                   Time up to which the visualisation is run.
+%       m           [8]                     Truncation order of Fourier expansions in incoming and scattered waves.
 
-input_filename = 'meshes/output.su2';
+input_filename = 'meshes/input.su2';
 output_filename = 'data/output.dat';
-video_output_filename = 'videos/output.mp4';
+video_output_filename = '';
 amplitude = 1;
 omega = 1;                      % [rad/s]
 m = 8;                          % Order of truncation of 4.11.1 and 4.11.2 in textbook
 theta_I = pi/8;
-write_video = false;
 time_step = 0.1;
 t_end = inf;
 
@@ -32,8 +45,6 @@ if ~isempty(varargin)
                 omega = value;
             case "theta"
                 theta_I = value;
-            case "video"
-                write_video = value;
             case "videooutput"
                 video_output_filename = value;
             case "timestep"
@@ -51,6 +62,8 @@ end
 if (length(omega) ~= length(amplitude)) || (length(omega) ~= length(theta_I))
     error('tsunami:numberOfWavesNotEqual', 'Error: The number of amplitudes, omega and theta input is not the same. Exiting.');
 end
+
+write_video = ~isempty(video_output_filename);
 
 % File input
 [points, elements, wall, farfield] = read_su2(input_filename);
@@ -88,7 +101,9 @@ N_elements = size(elements, 2); % Number of elements
 
 eta = zeros(E, N_waves);        % Displacement
 
-[data_path, data_filename, data_ext] = fileparts(output_filename);
+if ~isempty(output_filename)
+    [data_path, data_filename, data_ext] = fileparts(output_filename);
+end
 
 for wave = 1:N_waves
     K_1 = zeros(E, E); % E x E
@@ -220,7 +235,9 @@ for wave = 1:N_waves
         warning('tsunami:nanInEta', 'Warning: There were NaNs in the calculated eta. Usually found in the boundary. Setting to 0.');
     end
 
-    write_solution([data_path filesep data_filename sprintf('_omega%g', omega(wave)) data_ext], eta(:, wave), amplitude(wave), omega(wave));
+    if ~isepmty(output_filename)
+        write_solution([data_path filesep data_filename sprintf('_omega%g', omega(wave)) data_ext], eta(:, wave), amplitude(wave), omega(wave));
+    end
 end
 
 if write_video
