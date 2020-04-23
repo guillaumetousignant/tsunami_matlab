@@ -212,13 +212,11 @@ plot([x_domain_pix; x_domain_pix(1)], [y_domain_pix; y_domain_pix(1)], 'x', 'Lin
 %% All points together now
 N_points_wall = sum(N_points_walls);
 points_wall = zeros(N_points_wall, 3);
-elements_wall = zeros(N_points_wall, 2);
 points_wall_ext = zeros(sum(N_points_walls_ext), 3);
 offset_ext = 0;
 for i = 1:N_islands
     offset = wall_offset(i) - wall_offset(1);
     points_wall(offset + 1:offset + N_points_walls(i), :) = points_walls{i, 1};
-    elements_wall(offset + 1:offset + N_points_walls(i), :) = elements_walls{i, 1};
     points_wall_ext(1 + offset_ext:N_points_walls_ext(i) + offset_ext, :) = points_walls_ext{i, 1};
     offset_ext= offset_ext + N_points_walls_ext(i);
 end
@@ -277,27 +275,30 @@ trisurf(triangles, points(:, 1), points(:, 2), -points(:, 3));
 su2_file = fopen(filename_out, 'w');
     
 fprintf(su2_file, 'NDIME= 3\n\n');
-fprintf(su2_file, 'NPOIN= %g\n', N_points);
+fprintf(su2_file, 'NPOIN= %d\n', N_points);
 for k = 1:N_points
     fprintf(su2_file, '%g %g %g\n', points(k, 1), points(k, 2), points(k, 3));
 end
 
-fprintf(su2_file, '\nNELEM= %g\n', N_triangles);
+fprintf(su2_file, '\nNELEM= %d\n', N_triangles);
 for k = 1:N_triangles
-    fprintf(su2_file, '5 %g %g %g\n', triangles(k, 1), triangles(k, 2), triangles(k, 3));
+    fprintf(su2_file, '5 %d %d %d\n', triangles(k, 1), triangles(k, 2), triangles(k, 3));
 end
 
-fprintf(su2_file, 'NMARK= 2\n');
-fprintf(su2_file, 'MARKER_TAG= wall\n');
-fprintf(su2_file, 'MARKER_ELEMS= %g\n', N_points_wall);
-for k = 1:N_points_wall
-    fprintf(su2_file, '3 %g %g\n', elements_wall(k, 1), elements_wall(k, 2));
-end
+fprintf(su2_file, 'NMARK= %d\n', N_islands + 1);
 
 fprintf(su2_file, 'MARKER_TAG= farfield\n');
-fprintf(su2_file, 'MARKER_ELEMS= %g\n', N_points_ff);
+fprintf(su2_file, 'MARKER_ELEMS= %d\n', N_points_ff);
 for k = 1:N_points_ff
-    fprintf(su2_file, '3 %g %g\n',elements_ff(k, 1), elements_ff(k, 2));
+    fprintf(su2_file, '3 %d %d\n',elements_ff(k, 1), elements_ff(k, 2));
+end
+
+for i = 1:N_islands
+    fprintf(su2_file, 'MARKER_TAG= wall\n');
+    fprintf(su2_file, 'MARKER_ELEMS= %d\n', N_points_walls(i));
+    for k = 1:N_points_walls(i)
+        fprintf(su2_file, '3 %d %d\n', elements_walls{i, 1}(k, 1), elements_walls{i, 1}(k, 2));
+    end
 end
 
 fclose(su2_file);

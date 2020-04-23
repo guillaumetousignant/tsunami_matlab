@@ -7,8 +7,8 @@ if fid == -1
     error('read_su2:invalidInput', ['Unable to open file "', filename, '".']);
 end
 
-tline = fgetl(fid); % NDIM
-tline = fgetl(fid); % Spacing
+fgetl(fid); % NDIM
+fgetl(fid); % Spacing
 tline = fgetl(fid); % NPOIN
 [ln, rest] = strtok(tline);
 
@@ -51,12 +51,9 @@ if ~strcmp(ln, 'NMARK=')
 end
 
 n_markers = str2double(rest);
-
-if n_markers ~= 2
-    error('read_su2:invalidMarkerNumber', ['Invalid number of markers, "', num2str(n_markers), '". Expected "2".']);
-end
-
-wall = [];
+n_walls = n_markers - 1;
+wall_index = 1;
+wall = cell(n_walls, 1);
 farfield = [];
 
 for i = 1:n_markers
@@ -75,7 +72,7 @@ for i = 1:n_markers
             end
 
             n_wall = str2double(rest);
-            wall = zeros(2, n_wall); 
+            wall{wall_index, 1} = zeros(2, n_wall); 
 
             for j = 1:n_wall
                 tline = fgetl(fid);
@@ -83,8 +80,9 @@ for i = 1:n_markers
                 if ~strcmp(ln, '3')
                     error('read_su2:invalidElementType', ['Invalid element type "', ln, '". Only works for lines, "3".']); 
                 end
-                wall(:, j) = sscanf(rest,'%f');
+                wall{wall_index, 1}(:, j) = sscanf(rest,'%f');
             end
+            wall_index = wall_index + 1;
 
         case 'farfield'
             tline = fgetl(fid); % MARKER_ELEMS
@@ -111,11 +109,11 @@ for i = 1:n_markers
 end
 
 if isempty(wall)
-    error('read_su2:wallNotFound', ['Wall marker not found.']);
+    error('read_su2:wallNotFound', 'Wall marker not found.');
 end
 
 if isempty(farfield)
-    error('read_su2:farfieldNotFound', ['Far field marker not found.']);
+    error('read_su2:farfieldNotFound', 'Far field marker not found.');
 end
 
 fclose(fid);
